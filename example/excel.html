@@ -1,7 +1,9 @@
 <html>
 <head>
 	<title>Excel example usage with slickgrid</title>
-	<link rel="stylesheet" type="text/css" href="http://mleibman.github.com/SlickGrid/slick.grid.css" />
+    <link rel="stylesheet" href="../lib/slickgrid/slick.grid.css" type="text/css"/>
+    <link rel="stylesheet" href="../lib/slickgrid/css/smoothness/jquery-ui-1.8.16.custom.css" type="text/css"/>
+    <link rel="stylesheet" href="../lib/slickgrid/examples/slick-default-theme.css" type="text/css"/>
 
 </head>
 <body>
@@ -10,12 +12,18 @@
 			<div id="myGrid" style="width:100%;height:400px;"></div>
 		</div>
 	</div>
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
-	<script type="text/javascript" src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://mleibman.github.com/SlickGrid/lib/jquery.event.drag-2.0.min.js"></script>
-	<script type="text/javascript" src="http://mleibman.github.com/SlickGrid/lib/jquery.event.drop-2.0.min.js"></script>	
-	<script type="text/javascript" src="http://mleibman.github.com/SlickGrid/slick.core.js"></script>
-	<script type="text/javascript" src="http://mleibman.github.com/SlickGrid/slick.grid.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/lib/firebugx.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/lib/jquery-1.7.min.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/lib/jquery-ui-1.8.16.custom.min.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/slick.core.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.autotooltips.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellrangedecorator.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellrangeselector.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellcopymanager.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellselectionmodel.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/slick.editors.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/slick.grid.js"></script>
 	<script type="text/javascript" src="../spreadsheet.js"></script>
 	<script type="text/javascript" src="../lib/efp/efp.js"></script>
 	<script>
@@ -31,7 +39,7 @@
 		spreadsheet: Spreadsheet.createSheet(),
 		getItem: function(i){
 			var row = this.spreadsheet.cells.byRowAndCol[i];
-			if(row.num == null) row.num = i;
+			if(row != null && row.num == null) row.num = i+1;
 			return row;
 		},
 		getItemMetadata: function(i){
@@ -47,12 +55,14 @@
 			};
 
 			var row = this.getItem(i);
-			for(var col = 0; col < row.length; col++){
-				var cell = row[col];
-				if(cell != null){
-					meta.columns[cell.position.col] = {
-						formatter: function(r,c,v,metadata,row){
-							return v;
+			if(row != null){
+				for(var col = 0; col < row.length; col++){
+					var cell = row[col];
+					if(cell != null){
+						meta.columns[cell.position.col] = {
+							formatter: function(r,c,v,metadata,row){
+								return v.toString();
+							}
 						}
 					}
 				}
@@ -60,11 +70,21 @@
 			return meta;
 		},
 		getLength: function(){
-			return this.spreadsheet.cells.byRowAndCol.length;
+			if(this.spreadsheet != null && 
+				this.spreadsheet.cells != null && 
+				this.spreadsheet.cells.byRowAndCol != null){
+				return this.spreadsheet.cells.byRowAndCol.length;
+			}
+			return 0
 		}
 	};
 	var options = {
-		enableColumnReorder: false
+		enableColumnReorder: false,
+    	editable: true,
+    	enableAddRow: false,
+   		enableCellNavigation: true,
+    	asyncEditorLoading: false,
+    	autoEdit: false,
 	};
 
 	var rawData = [[{"formula":"Financial Period","coordinate":"B1"},{"formula":"","coordinate":"C1"},{"formula":"","coordinate":"D1"},{"formula":"","coordinate":"E1"},{"formula":"","coordinate":"F1"},{"formula":"","coordinate":"G1"},{"formula":"","coordinate":"H1"},{"formula":"","coordinate":"I1"},{"formula":"","coordinate":"J1"},{"formula":"","coordinate":"K1"},{"formula":"","coordinate":"L1"},{"formula":"","coordinate":"M1"}],[{"formula":"","coordinate":"A2"},{"formula":2008,"coordinate":"B2"},{"formula":"","coordinate":"C2"},{"formula":"","coordinate":"D2"},{"formula":"","coordinate":"E2"},{"formula":2009,"coordinate":"F2"},{"formula":"","coordinate":"G2"},{"formula":"","coordinate":"H2"},{"formula":"","coordinate":"I2"},{"formula":2010,"coordinate":"J2"},{"formula":"","coordinate":"K2"},{"formula":"","coordinate":"L2"},{"formula":"","coordinate":"M2"}],[{"formula":"","coordinate":"A3"},{"formula":"Qtr 1","coordinate":"B3"},{"formula":"Qtr 2","coordinate":"C3"},{"formula":"Qtr 3","coordinate":"D3"},{"formula":"Qtr 4","coordinate":"E3"},{"formula":"Qtr 1","coordinate":"F3"},{"formula":"Qtr 2","coordinate":"G3"},{"formula":"Qtr 3","coordinate":"H3"},{"formula":"Qtr 4","coordinate":"I3"},{"formula":"Qtr 1","coordinate":"J3"},{"formula":"Qtr 2","coordinate":"K3"},{"formula":"Qtr 3","coordinate":"L3"},{"formula":"Qtr 4","coordinate":"M3"}],[{"formula":"Budget","coordinate":"A4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M4"}],[{"formula":"Projected","coordinate":"A5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M5"}],[{"formula":"Actual","coordinate":"A6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M6"}],[{"formula":"Forecast","coordinate":"A7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M7"}]];
@@ -82,15 +102,106 @@
 		columns.push({
 			id:name,
 			field:c,
-			name:name
+			name:name,
+			editor:FormulaEditor
 		});
 	}
 				
 
 	$(function () {
 		grid = new Slick.Grid("#myGrid", dataModel, columns, options);
-		grid.render();
+	    grid.setSelectionModel(new Slick.CellSelectionModel());
+	    grid.registerPlugin(new Slick.AutoTooltips());
+
+	    // set keyboard focus on the grid
+	    grid.getCanvasNode().focus();
 	});
+
+
+  function FormulaEditor(args) {
+    var $input;
+    var defaultValue;
+    var scope = this;
+
+    this.init = function () {
+      $input = $("<INPUT type=text class='editor-formula' />")
+          .appendTo(args.container)
+          .bind("keydown.nav", function (e) {
+            if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT) {
+              e.stopImmediatePropagation();
+            }
+          })
+          .focus()
+          .select();
+    };
+
+    this.destroy = function () {
+      $input.remove();
+    };
+
+    this.focus = function () {
+      $input.focus();
+    };
+
+    this.getValue = function () {
+      return $input.val();
+    };
+
+    this.setValue = function (val) {
+      $input.val(val);
+    };
+
+    this.loadValue = function (item) {
+      defaultValue = ""
+      var cell = item[args.column.field];
+      if (cell != null){
+      	if(cell.isFormula()){    	
+	      defaultValue = cell.formula;
+	    }else{
+	      defaultValue = cell.value;
+	    }
+      }
+      $input.val(defaultValue);
+      $input[0].defaultValue = defaultValue;
+      $input.select();      
+    };
+
+    this.serializeValue = function () {
+      return $input.val();
+    };
+
+    this.applyValue = function (item, state) {
+    	var cell = item[args.column.field];
+    	if (cell != null){
+    		cell.setValue(state)
+    	}else{
+    		var dataModel = args.grid.getData();
+    		var pos = args.column.id+(args.column.field+1);
+    		item[args.column.field] = dataModel.spreadsheet.setCellData(pos,state);
+    	}     
+    };
+
+    this.isValueChanged = function () {
+      return (!($input.val() == "" && defaultValue == null)) && ($input.val() != defaultValue);
+    };
+
+    this.validate = function () {
+      if (args.column.validator) {
+        var validationResults = args.column.validator($input.val());
+        if (!validationResults.valid) {
+          return validationResults;
+        }
+      }
+
+      return {
+        valid: true,
+        msg: null
+      };
+    };
+
+    this.init();
+  }	
+
 </script>
 </body>
 </html>

@@ -242,8 +242,10 @@ test( "Value change listener test", function(){
     cell.addValueChangeListener(function(event){
         valueChanged = true;
         equal(this, cell);
-        equal(event.from, 'test');
-        equal(event.to, 'testVal');
+        equal(event.value.from, 'test');
+        equal(event.value.to, 'testVal');
+        equal(event.formula.from, '"test"');
+        equal(event.formula.to, '"testVal"');
     });
     cell.setValue('testVal');
     equal(valueChanged,true);

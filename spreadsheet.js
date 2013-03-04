@@ -191,41 +191,67 @@
     }
 
     function Cell(position,value){
-
-        if(!(position instanceof Position)){
-            throw "Illegal argument";
-        }
-        var formulaParser = position.sheet.formulaParser;
-        this.position = position;
-        this.value = value;
-        this.formula = value;
-        this.valueListeners = [];
-
-        if(typeof(this.value) === 'string' && this.value.indexOf('=') === 0){
-            this.value = formulaParser.parse(this.value.substring(1));
-        }
         
-
         this.addValueChangeListener = function(handler){
             if(typeof(handler) === 'function'){
                 this.valueListeners.push(handler)
             }
         }
 
-        this.setValue = function(val){
-            var oldValue = this.value;
-            this.value = val === '' ? null : val;
+        this.setValue = function(val){         
+            var old = {
+                formula: this.formula,
+                value: this.value
+            }
+
+            this.value = val;
+            this.formula = val;
+
+            if(this.isFormula()){
+                this.value = formulaParser.parse(val);
+            }
+       
             for(var x = 0; x < this.valueListeners.length; x++){
                 this.valueListeners[x].call(this,{
-                    from: oldValue,
-                    to: this.value
+                    value:{
+                        from: old.value,
+                        to: this.value
+                    },
+                    formula:{
+                        from: old.formula,
+                        to: this.formula
+                    }
                 })
             }
         }
 
         this.toString = function(){
-            return this.value;
+            return this.value != null ? ''+this.value : '';
         }
+
+        this.valueOf = function(){
+            return isNaN(this.value) ? '"'+this.value+'"' : parseFloat(this.value);
+        }
+
+        this.isFormula = function(){
+            if(typeof(this.formula) === 'string'){
+                return this.formula.length > 1 && this.formula.indexOf('=') === 0;
+            }
+            return false
+        }
+
+        this.getType = function(){
+            return this.type;
+        }
+
+        if(!(position instanceof Position)){
+            throw "Illegal argument";
+        }
+        var formulaParser = position.sheet.formulaParser;
+        this.position = position;
+        this.valueListeners = [];
+
+        this.setValue(value);
     }
 
     function Position(col,row,sheet){

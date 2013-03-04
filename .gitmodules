@@ -1,6 +1,6 @@
 [submodule "lib/efp"]
 	path = lib/efp
-	url = git://github.com/netbrain/excel-formula-parser.git
+	url = https://github.com/netbrain/excel-formula-parser
 [submodule "lib/slickgrid"]
 	path = lib/slickgrid
 	url = https://github.com/mleibman/SlickGrid
