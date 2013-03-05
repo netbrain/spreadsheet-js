@@ -234,7 +234,7 @@ test( "Get cell range A1-C3 by PositionRange", function(){
     ]);
 });
 
-test( "Value change listener test", function(){
+test( "Value change listener test string", function(){
     var sheet = Spreadsheet.createSheet();
     sheet.setCellData('A1','test');
     var cell = sheet.getCell('A1');
@@ -244,9 +244,67 @@ test( "Value change listener test", function(){
         equal(this, cell);
         equal(event.value.from, 'test');
         equal(event.value.to, 'testVal');
-        equal(event.formula.from, '"test"');
-        equal(event.formula.to, '"testVal"');
+        equal(event.formula.from, 'test');
+        equal(event.formula.to, 'testVal');
     });
     cell.setValue('testVal');
     equal(valueChanged,true);
 });
+
+test( "Value change listener test number", function(){
+    var sheet = Spreadsheet.createSheet();
+    sheet.setCellData('A1','test');
+    var cell = sheet.getCell('A1');
+    var valueChanged = false;
+    cell.addValueChangeListener(function(event){
+        valueChanged = true;
+        equal(this, cell);
+        equal(event.value.from, 'test');
+        equal(event.value.to, '1024');
+        equal(event.formula.from, 'test');
+        equal(event.formula.to, '1024');
+    });
+    cell.setValue('1024');
+    equal(valueChanged,true);
+});
+
+test( "Value change listener test formula", function(){
+    var sheet = Spreadsheet.createSheet();
+    sheet.setCellData('A1','test');
+    var cell = sheet.getCell('A1');
+    var valueChanged = false;
+    cell.addValueChangeListener(function(event){
+        valueChanged = true;
+        equal(this, cell);
+        equal(event.value.from, 'test');
+        equal(event.value.to, '=1+2^3');
+        equal(event.formula.from, 'test');
+        equal(event.formula.to, '=1+2^3');
+    });
+    cell.setValue('=1+2^3');
+    equal(valueChanged,true);
+});
+
+
+test( "Test valueOf cell string", function(){
+    var sheet = Spreadsheet.createSheet();
+    sheet.setCellData('A1','test');
+    var cellVal = sheet.getCell('A1').valueOf();
+    equal(cellVal,'"test"');
+});
+
+test( "Test valueOf cell number", function(){
+    var sheet = Spreadsheet.createSheet();
+    sheet.setCellData('A1','8');
+    var cellVal = sheet.getCell('A1').valueOf();
+    equal(cellVal,8);
+});
+
+test( "Test valueOf cell formula", function(){
+    var sheet = Spreadsheet.createSheet();
+    sheet.setCellData('A1','=SUM(1,2)');
+    var cellVal = sheet.getCell('A1').valueOf();
+    equal(cellVal,3);
+});
+
+

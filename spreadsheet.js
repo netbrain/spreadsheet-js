@@ -206,10 +206,6 @@
 
             this.value = val;
             this.formula = val;
-
-            if(this.isFormula()){
-                this.value = formulaParser.parse(val);
-            }
        
             for(var x = 0; x < this.valueListeners.length; x++){
                 this.valueListeners[x].call(this,{
@@ -225,11 +221,32 @@
             }
         }
 
+        this.isCalculated = function(){
+            if(!this.isFormula()) return true;
+            return this.value !== this.formula;
+        }
+
+        this.calculateValue = function(){
+            if(!this.isCalculated()){
+                 this.value = formulaParser.parse(this.formula);                 
+            }
+        }
+
+        this.getCalculatedValue = function(){
+            this.calculateValue();
+            return this.value;
+        }
+
         this.toString = function(){
             return this.value != null ? ''+this.value : '';
         }
-
+        
+        //Returns the primitive calculated value of the cell
+        //In it's excel format
         this.valueOf = function(){
+            if(!this.isCalculated()){
+                this.calculateValue();
+            }
             return isNaN(this.value) ? '"'+this.value+'"' : parseFloat(this.value);
         }
 
