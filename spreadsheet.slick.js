@@ -116,7 +116,11 @@
       if(dataContext != null){
         var cell = dataContext[colDef.field];
         if(cell != null){
-          $(cellNode).text('...').text(cell.getCalculatedValue());
+          try{
+            $(cellNode).text('...').text(cell.getCalculatedValue());
+          }catch(err){
+            $(cellNode).text(''+Parser.Error.NAME);
+          }
         }
       }
     }

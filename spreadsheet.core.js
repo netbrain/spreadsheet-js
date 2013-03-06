@@ -266,10 +266,6 @@
             return false
         }
 
-        this.getType = function(){
-            return this.type;
-        }
-
         this.setMetadata = function(metadata){
             this.metadata = metadata;
         }
