@@ -23,201 +23,44 @@
 	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellselectionmodel.js"></script>
 	<script type="text/javascript" src="../lib/slickgrid/slick.editors.js"></script>
 	<script type="text/javascript" src="../lib/slickgrid/slick.grid.js"></script>
-	<script type="text/javascript" src="../spreadsheet.js"></script>
+	<script type="text/javascript" src="../spreadsheet.core.js"></script>
 	<script type="text/javascript" src="../lib/efp/efp.js"></script>
-	<script>
-	var grid;
-	var columns = [{
-		id:'num',
-		field:'num',
-		name:'',
-		resizable: false,
-		width: 50		
-	}];
-	var dataModel = {
-		spreadsheet: Spreadsheet.createSheet(),
-		getItem: function(i){
-			var row = this.spreadsheet.cells.byRowAndCol[i];
-			if(row != null && row.num == null) row.num = i+1;
-			return row;
-		},
-		getItemMetadata: function(i){
-			var meta = {
-				cssClasses: '',
-				focusable: true,
-				selectable: true,
-			    columns:  {
-					  'num':{
-					  	selectable:false
-					  }
-				}
-			};
-
-			var row = this.getItem(i);
-			if(row != null){
-				for(var col = 0; col < row.length; col++){
-					var cell = row[col];
-					if(cell != null){
-						meta.columns[cell.position.col] = {
-							formatter: function(r,c,v,metadata,row){
-								if(v.isCalculated()){
-									return v.toString();
-								}else{
-									return '...';
-								}
-							}
-						}
-					}
-				}
+	<script type="text/javascript" src="../spreadsheet.slick.js"></script>	
+	<script type="text/javascript">
+		var rawData = {
+			A1:{
+				formula:'Example',
+				metadata:{
+					colspan:4,
+				},
+			},
+			A3:{
+				formula:'SUM',
+			},
+			A4:{
+				formula:'COUNT'
+			},
+			A5:{
+				formula:'RANDBETWEEN'
+			},
+			B3:{
+				formula:'=SUM(C3:C1000)'
+			},
+			B4:{
+				formula:'=COUNT(C3:D1000)'
+			},
+			B5:{
+				formula:'=RANDBETWEEN(1,D3)'
 			}
-			return meta;
-		},
-		getLength: function(){
-			if(this.spreadsheet != null && 
-				this.spreadsheet.cells != null && 
-				this.spreadsheet.cells.byRowAndCol != null){
-				return this.spreadsheet.cells.byRowAndCol.length;
-			}
-			return 0
 		}
-	};
-	var options = {
-		enableColumnReorder: false,
-    	editable: true,
-    	enableAddRow: false,
-   		enableCellNavigation: true,
-    	asyncEditorLoading: false,
-    	autoEdit: false,
-    	enableAsyncPostRender: true
-	};
 
-	// var rawData = [[{"formula":"Financial Period","coordinate":"B1"},{"formula":"","coordinate":"C1"},{"formula":"","coordinate":"D1"},{"formula":"","coordinate":"E1"},{"formula":"","coordinate":"F1"},{"formula":"","coordinate":"G1"},{"formula":"","coordinate":"H1"},{"formula":"","coordinate":"I1"},{"formula":"","coordinate":"J1"},{"formula":"","coordinate":"K1"},{"formula":"","coordinate":"L1"},{"formula":"","coordinate":"M1"}],[{"formula":"","coordinate":"A2"},{"formula":2008,"coordinate":"B2"},{"formula":"","coordinate":"C2"},{"formula":"","coordinate":"D2"},{"formula":"","coordinate":"E2"},{"formula":2009,"coordinate":"F2"},{"formula":"","coordinate":"G2"},{"formula":"","coordinate":"H2"},{"formula":"","coordinate":"I2"},{"formula":2010,"coordinate":"J2"},{"formula":"","coordinate":"K2"},{"formula":"","coordinate":"L2"},{"formula":"","coordinate":"M2"}],[{"formula":"","coordinate":"A3"},{"formula":"Qtr 1","coordinate":"B3"},{"formula":"Qtr 2","coordinate":"C3"},{"formula":"Qtr 3","coordinate":"D3"},{"formula":"Qtr 4","coordinate":"E3"},{"formula":"Qtr 1","coordinate":"F3"},{"formula":"Qtr 2","coordinate":"G3"},{"formula":"Qtr 3","coordinate":"H3"},{"formula":"Qtr 4","coordinate":"I3"},{"formula":"Qtr 1","coordinate":"J3"},{"formula":"Qtr 2","coordinate":"K3"},{"formula":"Qtr 3","coordinate":"L3"},{"formula":"Qtr 4","coordinate":"M3"}],[{"formula":"Budget","coordinate":"A4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L4"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M4"}],[{"formula":"Projected","coordinate":"A5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L5"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M5"}],[{"formula":"Actual","coordinate":"A6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L6"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M6"}],[{"formula":"Forecast","coordinate":"A7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"B7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"C7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"D7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"E7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"F7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"G7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"H7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"I7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"J7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"K7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"L7"},{"formula":"=(RANDBETWEEN(-50,250)+100)*10","coordinate":"M7"}]];
-	for(var x = 'A'.charCodeAt(0); x <= 'Z'.charCodeAt(0); x++){
-		for(var y = 1; y <= 75; y++){
-			var pos = String.fromCharCode(x)+y;
-			dataModel.spreadsheet.setCellData(pos,'=RANDBETWEEN(1,200)');
-		}
-	}
-	// for(var row = 0; row < rawData.length; row++){
-	// 	for(var col = 0; col < rawData[row].length; col++){
-	// 		var cellData = rawData[row][col];
-	// 		dataModel.spreadsheet.setCellData(cellData.coordinate,cellData.formula);
-	// 	}	
-	// }
-	
-
-	var cNum = dataModel.spreadsheet.getColNum();
-	for(var c = 0; c < cNum; c++){
-		var name = Spreadsheet.getColumnNameByIndex(c);
-		columns.push({
-			id:name,
-			field:c,
-			name:name,
-			editor:FormulaEditor,
-			asyncPostRender:function (cellNode, row, dataContext, colDef) {
-				var cell = dataContext[colDef.field];
-				if(cell != null){
-					$(cellNode).text('...').text(cell.getCalculatedValue());
-				}
+		for(var x = 'C'.charCodeAt(0); x < 'E'.charCodeAt(0); x++){
+			for(var y = 3 ; y <= 1000; y++){
+				rawData[String.fromCharCode(x)+y] = {formula:'=RANDBETWEEN(1,100)'};
 			}
-		});
-	}
-				
+		}
 
-	$(function () {
-		grid = new Slick.Grid("#myGrid", dataModel, columns, options);
-	    grid.setSelectionModel(new Slick.CellSelectionModel());
-	    grid.registerPlugin(new Slick.AutoTooltips());
-
-	    // set keyboard focus on the grid
-	    grid.getCanvasNode().focus();
-	});
-
-
-  function FormulaEditor(args) {
-    var $input;
-    var defaultValue;
-    var scope = this;
-
-    this.init = function () {
-      $input = $("<INPUT type=text class='editor-formula' />")
-          .appendTo(args.container)
-          .bind("keydown.nav", function (e) {
-            if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT) {
-              e.stopImmediatePropagation();
-            }
-          })
-          .focus()
-          .select();
-    };
-
-    this.destroy = function () {
-      $input.remove();
-    };
-
-    this.focus = function () {
-      $input.focus();
-    };
-
-    this.getValue = function () {
-      return $input.val();
-    };
-
-    this.setValue = function (val) {
-      $input.val(val);
-    };
-
-    this.loadValue = function (item) {
-      defaultValue = ""
-      var cell = item[args.column.field];
-      if (cell != null){
-      	if(cell.isFormula()){    	
-	      defaultValue = cell.formula;
-	    }else{
-	      defaultValue = cell.value;
-	    }
-      }
-      $input.val(defaultValue);
-      $input[0].defaultValue = defaultValue;
-      $input.select();      
-    };
-
-    this.serializeValue = function () {
-      return $input.val();
-    };
-
-    this.applyValue = function (item, state) {
-    	var cell = item[args.column.field];
-    	if (cell != null){
-    		cell.setValue(state)
-    	}else{
-    		var dataModel = args.grid.getData();
-    		var pos = args.column.id+(args.column.field+1);
-    		item[args.column.field] = dataModel.spreadsheet.setCellData(pos,state);
-    	}     
-    };
-
-    this.isValueChanged = function () {
-      return (!($input.val() == "" && defaultValue == null)) && ($input.val() != defaultValue);
-    };
-
-    this.validate = function () {
-      if (args.column.validator) {
-        var validationResults = args.column.validator($input.val());
-        if (!validationResults.valid) {
-          return validationResults;
-        }
-      }
-
-      return {
-        valid: true,
-        msg: null
-      };
-    };
-
-    this.init();
-  }	
-
-</script>
+		var spreadsheetSlick = new Spreadsheet.Slick('#myGrid',rawData);
+	</script>
 </body>
 </html>
