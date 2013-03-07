@@ -364,7 +364,7 @@ test( "Test reference handling", function(){
     deepEqual(A1.referingCells,[A2]);
 });
 
-test( "Test reference handling2", function(){
+test( "Test range reference handling", function(){
     var sheet = Spreadsheet.createSheet();
     var A1 = sheet.setCellData('A1',1);
     var A2 = sheet.setCellData('A2',2);

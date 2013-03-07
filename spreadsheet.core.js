@@ -278,18 +278,21 @@
                 this.value = formulaParser.parse(this.formula,this.position);
                 if(typeof(this.value) === 'object'){
                     this.value = this.value.valueOf();
-                }
-
+                }              
                 if(formulaParser.hasReferences(this.position)){
                     var refs = formulaParser.getReferences(this.position);
                     if(refs != null){
                         for(var x = 0; x < refs.length; x++){
                             var referencedCell = this.position.sheet.getCell(refs[x]);
+                            if(referencedCell == null){
+                                referencedCell = this.position.sheet.setCellData(refs[x],'');
+                            }
                             referencedCell.addReferingCell(this);
                             this.addReferencedCell(referencedCell);
+
                         }            
                     }
-                }                 
+                }               
             }
         }
 

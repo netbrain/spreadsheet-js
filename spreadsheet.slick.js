@@ -68,6 +68,11 @@
           return this.spreadsheet.cells.byRowAndCol.length;
         }
         return 0
+      },
+      setCellData: function(pos,value){
+        var cell = this.spreadsheet.setCellData(pos,value);
+        cell.addValueChangeListener(ValueChangeListener,cell);
+        return cell;
       }
     };
     var options = {
@@ -83,10 +88,7 @@
 
     this.setData = function(data){
       for(var pos in data){
-         var cellFormula = data[pos].formula;
-         var cell = dataModel.spreadsheet.setCellData(pos,cellFormula);
-         cell.setMetadata(data[pos].metadata);
-         cell.addValueChangeListener(ValueChangeListener,cell)
+         dataModel.setCellData(pos,data[pos].formula);
       }
     }
 
@@ -184,7 +186,7 @@
         }else{
           var dataModel = args.grid.getData();
           var pos = args.column.id+args.item.rowNum;
-          item[args.column.field] = dataModel.spreadsheet.setCellData(pos,state);
+          item[args.column.field] = dataModel.setCellData(pos,state);
         }     
       };
 
@@ -211,6 +213,7 @@
 
     function ValueChangeListener(e){
       grid.invalidateRow(this.position.row-1);
+      grid.invalidateRow(e.cell.position.row-1);
       grid.render();
     }      
   }   
