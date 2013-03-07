@@ -241,12 +241,11 @@ test( "Value change listener test string", function(){
     var valueChanged = false;
     cell.addValueChangeListener(function(event){
         valueChanged = true;
-        equal(this, cell);
-        equal(event.value.from, 'test');
-        equal(event.value.to, 'testVal');
-        equal(event.formula.from, 'test');
-        equal(event.formula.to, 'testVal');
-    });
+        deepEqual(this, cell);
+        deepEqual(event.cell,cell);
+        deepEqual(event.from, 'test');
+        deepEqual(event.to, 'testVal');
+    },cell);
     cell.setValue('testVal');
     equal(valueChanged,true);
 });
@@ -258,13 +257,29 @@ test( "Value change listener test number", function(){
     var valueChanged = false;
     cell.addValueChangeListener(function(event){
         valueChanged = true;
-        equal(this, cell);
-        equal(event.value.from, 'test');
-        equal(event.value.to, '1024');
-        equal(event.formula.from, 'test');
-        equal(event.formula.to, '1024');
-    });
+        deepEqual(this, cell);
+        deepEqual(event.cell,cell);
+        deepEqual(event.from, 'test');
+        deepEqual(event.to, '1024');
+    },cell);
     cell.setValue('1024');
+    equal(valueChanged,true);
+});
+
+
+test( "Value change listener test formula", function(){
+    var sheet = Spreadsheet.createSheet();
+    sheet.setCellData('A1','test');
+    var cell = sheet.getCell('A1');
+    var valueChanged = false;
+    cell.addValueChangeListener(function(event){
+        valueChanged = true;
+        deepEqual(this, cell);
+        deepEqual(event.cell,cell);
+        deepEqual(event.from, 'test');
+        deepEqual(event.to, '=1+2^3');
+    },cell);
+    cell.setValue('=1+2^3');
     equal(valueChanged,true);
 });
 
@@ -290,24 +305,6 @@ test( "Test valueOf cell formula", function(){
 });
 
 
-test( "Value change listener test formula", function(){
-    var sheet = Spreadsheet.createSheet();
-    sheet.setCellData('A1','test');
-    var cell = sheet.getCell('A1');
-    var valueChanged = false;
-    cell.addValueChangeListener(function(event){
-        valueChanged = true;
-        equal(this, cell);
-        equal(event.value.from, 'test');
-        equal(event.value.to, '=1+2^3');
-        equal(event.formula.from, 'test');
-        equal(event.formula.to, '=1+2^3');
-    });
-    cell.setValue('=1+2^3');
-    equal(valueChanged,true);
-});
-
-
 test( "Value change listener test multiple add", function(){
     var sheet = Spreadsheet.createSheet();
     sheet.setCellData('A1','test');
@@ -320,4 +317,63 @@ test( "Value change listener test multiple add", function(){
     cell.addValueChangeListener(fn);
     cell.setValue('newValue');
     equal(valueChanged,1);
+});
+
+test( "Get calculated value", function(){
+    var sheet = Spreadsheet.createSheet();
+    var A1 = sheet.setCellData('A1','text');
+    var A2 = sheet.setCellData('A2','=A1');    
+    deepEqual(A1.getCalculatedValue(),'text');
+    deepEqual(A2.getCalculatedValue(),'text');
+});
+
+test( "Recalculate value when reference is updated", function(){
+    var sheet = Spreadsheet.createSheet();
+    var A1 = sheet.setCellData('A1','text');
+    var A2 = sheet.setCellData('A2','=A1');    
+    deepEqual(A1.getCalculatedValue(),'text');
+    deepEqual(A2.getCalculatedValue(),'text');
+    A1.setValue('test');
+    deepEqual(A1.getCalculatedValue(),'test');
+    deepEqual(A2.getCalculatedValue(),'test');
+});
+
+test( "Recalculate value when long reference chain is updated", function(){
+    var sheet = Spreadsheet.createSheet();
+    var A1 = sheet.setCellData('A1',1);
+    var A2 = sheet.setCellData('A2','=A1+1');    
+    var A3 = sheet.setCellData('A3','=SUM(A1,A2)');  
+    deepEqual(A1.getCalculatedValue(),1);
+    deepEqual(A2.getCalculatedValue(),2);
+    deepEqual(A3.getCalculatedValue(),3);
+    A1.setValue('10');
+    deepEqual(A2.getCalculatedValue(),11);
+    deepEqual(A3.getCalculatedValue(),21);
+});
+
+test( "Test reference handling", function(){
+    var sheet = Spreadsheet.createSheet();
+    var A1 = sheet.setCellData('A1',1);
+    var A2 = sheet.setCellData('A2','=A1+1');
+    A1.calculateValue();
+    A2.calculateValue();
+
+    deepEqual(A1.referencedCells,[]);
+    deepEqual(A2.referencedCells,[A1]);
+    deepEqual(A2.referingCells,[]);
+    deepEqual(A1.referingCells,[A2]);
+});
+
+test( "Test reference handling2", function(){
+    var sheet = Spreadsheet.createSheet();
+    var A1 = sheet.setCellData('A1',1);
+    var A2 = sheet.setCellData('A2',2);
+    var A3 = sheet.setCellData('A3',3);
+    var A4 = sheet.setCellData('A4','=SUM(A1:A3)');
+    A4.calculateValue();
+
+    deepEqual(A4.referencedCells.sort(),[A1,A2,A3].sort());
+    deepEqual(A1.referingCells,[A4]);
+    deepEqual(A2.referingCells,[A4]);
+    deepEqual(A3.referingCells,[A4]);
 });

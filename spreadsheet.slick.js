@@ -86,7 +86,7 @@
          var cellFormula = data[pos].formula;
          var cell = dataModel.spreadsheet.setCellData(pos,cellFormula);
          cell.setMetadata(data[pos].metadata);
-         cell.addValueChangeListener(ValueChangeListener)
+         cell.addValueChangeListener(ValueChangeListener,cell)
       }
     }
 
@@ -117,7 +117,7 @@
         var cell = dataContext[colDef.field];
         if(cell != null){
           try{
-            $(cellNode).text('...').text(cell.getCalculatedValue());
+            $(cellNode).text(cell.getCalculatedValue());
           }catch(err){
             $(cellNode).text(''+Parser.Error.NAME);
           }

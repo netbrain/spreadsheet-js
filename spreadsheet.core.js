@@ -191,43 +191,81 @@
     }
 
     function Cell(position,value){
+
+        this.addReferingCell = function(cell){
+            var alreadyAdded = false;
+            for(var x = 0; x < this.referingCells.length; x++){
+                if(this.referingCells[x] === cell){
+                    alreadyAdded = true;
+                    break;
+                }   
+            }
+            if(!alreadyAdded){
+                this.referingCells.push(cell);
+            }            
+        };
+
+        this.addReferencedCell = function(cell){
+            var alreadyAdded = false;
+            for(var x = 0; x < this.referencedCells.length; x++){
+                if(this.referencedCells[x] === cell){
+                    alreadyAdded = true;
+                    break;
+                }   
+            }
+            if(!alreadyAdded){
+                this.referencedCells.push(cell);
+                cell.addValueChangeListener(this.referenceValueChange,this);
+            }
+        };
         
-        this.addValueChangeListener = function(handler){
+        this.addValueChangeListener = function(handler,context){
             if(typeof(handler) === 'function'){
                 var alreadyAdded = false;
                 for(var x = 0; x < this.valueListeners.length; x++){
-                    if(this.valueListeners[x] === handler){
+                    var l = this.valueListeners[x];
+                    if(l.handler === handler){
                         alreadyAdded = true;
                         break;
                     }   
                 }
                 if(!alreadyAdded){
-                    this.valueListeners.push(handler)
+                    this.valueListeners.push({
+                        handler:handler,
+                        context:context,
+                    })
                 }
+            }
+        };
+
+        this.setValue = function(val){         
+            var oldFormula = this.formula;
+            this.value = val;
+            this.formula = val;
+            this.triggerValueChangeEvent(this,oldFormula,this.formula);
+        }
+
+        this.triggerValueChangeEvent = function(cell,from,to) {
+            for (var x = 0; x < this.valueListeners.length; x++) {
+                var l = this.valueListeners[x];
+                l.handler.call(l.context, {
+                    cell: cell,
+                    from: from,
+                    to: to
+                });
             }
         }
 
-        this.setValue = function(val){         
-            var old = {
-                formula: this.formula,
-                value: this.value
-            }
+        this.recalculate = function(){
+            if(this.isFormula()){
+                this.value = this.formula;
+                this.calculateValue();           
+            }         
+        }        
 
-            this.value = val;
-            this.formula = val;
-       
-            for(var x = 0; x < this.valueListeners.length; x++){
-                this.valueListeners[x].call(this,{
-                    value:{
-                        from: old.value,
-                        to: this.value
-                    },
-                    formula:{
-                        from: old.formula,
-                        to: this.formula
-                    }
-                })
-            }
+        this.referenceValueChange = function(e){
+            this.recalculate();
+            this.triggerValueChangeEvent(e.cell,e.from,e.to);
         }
 
         this.isCalculated = function(){
@@ -237,7 +275,21 @@
 
         this.calculateValue = function(){
             if(!this.isCalculated()){
-                 this.value = formulaParser.parse(this.formula);                 
+                this.value = formulaParser.parse(this.formula,this.position);
+                if(typeof(this.value) === 'object'){
+                    this.value = this.value.valueOf();
+                }
+
+                if(formulaParser.hasReferences(this.position)){
+                    var refs = formulaParser.getReferences(this.position);
+                    if(refs != null){
+                        for(var x = 0; x < refs.length; x++){
+                            var referencedCell = this.position.sheet.getCell(refs[x]);
+                            referencedCell.addReferingCell(this);
+                            this.addReferencedCell(referencedCell);
+                        }            
+                    }
+                }                 
             }
         }
 
@@ -276,8 +328,11 @@
         var formulaParser = position.sheet.formulaParser;
         this.position = position;
         this.valueListeners = [];
+        this.referencedCells = [];
+        this.referingCells = [];
 
         this.setValue(value);
+
     }
 
     function Position(col,row,sheet){
