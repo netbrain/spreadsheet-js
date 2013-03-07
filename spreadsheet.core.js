@@ -311,7 +311,8 @@
             if(!this.isCalculated()){
                 this.calculateValue();
             }
-            return isNaN(this.value) ? '"'+this.value+'"' : parseFloat(this.value);
+            var number = parseFloat(this.value);
+            return isNaN(number) ? '"'+this.value+'"' : number;
         }
 
         this.isFormula = function(){
