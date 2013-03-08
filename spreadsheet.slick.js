@@ -12,16 +12,16 @@
       field:'rowNum',
       name:'',
       resizable: true,
-      width: 50   
+      width: 50
     }];
     var dataModel = {
       spreadsheet: Spreadsheet.createSheet(),
       getItem: function(i){
         var row = this.spreadsheet.cells.byRowAndCol[i];
-        if(row == null){
+        if(!row){
           row = {};
         }
-        if(row.rowNum == null) row.rowNum = i+1;        
+        if(!row.rowNum) row.rowNum = i+1;
         return row;
       },
       getItemMetadata: function(i){
@@ -37,37 +37,28 @@
         };
 
         var row = this.getItem(i);
-        if(row != null){
+        if(row){
           for(var col = 0; col < row.length; col++){
             var cell = row[col];
-            if(cell != null){
+            if(cell){
               var itemMeta = {};
-              meta.columns[cell.position.col] = itemMeta;                
-              itemMeta.formatter = function(r,c,v,metadata,row){
-                if(v.isCalculated()){
-                  return v.toString();
-                }else{
-                  return '...';
-                }
+              meta.columns[cell.position.col] = itemMeta;
+              itemMeta.formatter = CellFormatter;
+              if(cell.metadata && cell.metadata.colspan){
+                itemMeta.colspan = cell.metadata.colspan;
               }
-              if(cell.metadata != null){
-                if(cell.metadata.colspan != null){
-                  itemMeta.colspan = cell.metadata.colspan;
-                }  
-              }
-              
             }
           }
         }
         return meta;
       },
       getLength: function(){
-        if(this.spreadsheet != null && 
-          this.spreadsheet.cells != null && 
-          this.spreadsheet.cells.byRowAndCol != null){
+        if(this.spreadsheet &&
+          this.spreadsheet.cells &&
+          this.spreadsheet.cells.byRowAndCol){
           return this.spreadsheet.cells.byRowAndCol.length;
         }
-        return 0
+        return 0;
       },
       setCellData: function(pos,value){
         var cell = this.spreadsheet.setCellData(pos,value);
@@ -83,21 +74,21 @@
       asyncEditorLoading: false,
       autoEdit: false,
       enableAsyncPostRender: true,
-      asyncPostRenderDelay: 10,
-    };    
+      asyncPostRenderDelay: 10
+    };
 
     this.setData = function(data){
       for(var pos in data){
          var cell = dataModel.setCellData(pos,data[pos].formula);
-         if(data[pos].metadata != null){
+         if(data[pos].metadata){
           cell.setMetadata(data[pos].metadata);
          }
       }
-    }
+    };
 
     this.getGrid = function(){
       return grid;
-    }
+    };
 
     this.setData(data);
 
@@ -112,21 +103,29 @@
         asyncPostRender:AsyncRenderer
       });
     }
-          
+
     grid = new Slick.Grid(selector, dataModel, columns, options);
     grid.setSelectionModel(new Slick.CellSelectionModel());
     grid.registerPlugin(new Slick.AutoTooltips());
 
     function AsyncRenderer(cellNode, row, dataContext, colDef) {
-      if(dataContext != null){
+      if(dataContext){
         var cell = dataContext[colDef.field];
-        if(cell != null){
+        if(cell){
           try{
             $(cellNode).text(cell.getCalculatedValue());
           }catch(err){
             $(cellNode).text(''+Parser.Error.NAME);
           }
         }
+      }
+    }
+
+    function CellFormatter(r,c,v,metadata,row){
+      if(v.isCalculated()){
+        return v.toString();
+      }else{
+        return '...';
       }
     }
 
@@ -164,10 +163,10 @@
       };
 
       this.loadValue = function (item) {
-        defaultValue = ""
+        defaultValue = "";
         var cell = item[args.column.field];
-        if (cell != null){
-          if(cell.isFormula()){     
+        if (cell){
+          if(cell.isFormula()){
           defaultValue = cell.formula;
         }else{
           defaultValue = cell.value;
@@ -175,7 +174,7 @@
         }
         $input.val(defaultValue);
         $input[0].defaultValue = defaultValue;
-        $input.select();      
+        $input.select();
       };
 
       this.serializeValue = function () {
@@ -184,17 +183,17 @@
 
       this.applyValue = function (item, state) {
         var cell = item[args.column.field];
-        if (cell != null){
-          cell.setValue(state)
+        if (cell){
+          cell.setValue(state);
         }else{
           var dataModel = args.grid.getData();
           var pos = args.column.id+args.item.rowNum;
           item[args.column.field] = dataModel.setCellData(pos,state);
-        }     
+        }
       };
 
       this.isValueChanged = function () {
-        return (!($input.val() == "" && defaultValue == null)) && ($input.val() != defaultValue);
+        return (!($input.val() === "" && defaultValue === null)) && ($input.val() !== defaultValue);
       };
 
       this.validate = function () {
@@ -218,7 +217,7 @@
       grid.invalidateRow(this.position.row-1);
       grid.invalidateRow(e.cell.position.row-1);
       grid.render();
-    }      
-  }   
+    }
+  }
 
 })(Spreadsheet);

@@ -7,7 +7,7 @@
 </head>
 <body>
 	<div style="position:relative">
-		<div style="width:100%;">
+		<div style="width:500px; height: 500px">
 			<div id="myGrid" style="width:100%;height:100%;"></div>
 		</div>
 	</div>
@@ -31,11 +31,11 @@
 			A1:{
 				formula:'Example',
 				metadata:{
-					colspan:4,
+					colspan:4
 				}
 			},
 			A3:{
-				formula:'SUM',
+				formula:'SUM'
 			},
 			A4:{
 				formula:'COUNT'
@@ -52,7 +52,7 @@
 			B5:{
 				formula:'=RANDBETWEEN(1,D3)'
 			}
-		}
+		};
 
 		for(var x = 'C'.charCodeAt(0); x < 'E'.charCodeAt(0); x++){
 			for(var y = 3 ; y <= 1000; y++){

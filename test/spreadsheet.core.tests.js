@@ -166,7 +166,7 @@ test( "Set cell data", function() {
 
 test( "Get cell by string", function(){
     var sheet = Spreadsheet.createSheet();
-    sheet.setCellData('A1',1)
+    sheet.setCellData('A1',1);
     var cell = sheet.getCell('A1');
     notEqual(cell,undefined);
     notEqual(cell,null);
@@ -178,7 +178,7 @@ test( "Get cell by string", function(){
 
 test( "Get cell by Position", function(){
     var sheet = Spreadsheet.createSheet();
-    sheet.setCellData('A1',1)
+    sheet.setCellData('A1',1);
     var pos = Spreadsheet.parsePosition('A1');
     var cell = sheet.getCell(pos);
     notEqual(cell,undefined);
@@ -322,7 +322,7 @@ test( "Value change listener test multiple add", function(){
 test( "Get calculated value", function(){
     var sheet = Spreadsheet.createSheet();
     var A1 = sheet.setCellData('A1','text');
-    var A2 = sheet.setCellData('A2','=A1');    
+    var A2 = sheet.setCellData('A2','=A1');
     deepEqual(A1.getCalculatedValue(),'text');
     deepEqual(A2.getCalculatedValue(),'text');
 });
@@ -330,7 +330,7 @@ test( "Get calculated value", function(){
 test( "Recalculate value when reference is updated", function(){
     var sheet = Spreadsheet.createSheet();
     var A1 = sheet.setCellData('A1','text');
-    var A2 = sheet.setCellData('A2','=A1');    
+    var A2 = sheet.setCellData('A2','=A1');
     deepEqual(A1.getCalculatedValue(),'text');
     deepEqual(A2.getCalculatedValue(),'text');
     A1.setValue('test');
@@ -341,8 +341,8 @@ test( "Recalculate value when reference is updated", function(){
 test( "Recalculate value when long reference chain is updated", function(){
     var sheet = Spreadsheet.createSheet();
     var A1 = sheet.setCellData('A1',1);
-    var A2 = sheet.setCellData('A2','=A1+1');    
-    var A3 = sheet.setCellData('A3','=SUM(A1,A2)');  
+    var A2 = sheet.setCellData('A2','=A1+1');
+    var A3 = sheet.setCellData('A3','=SUM(A1,A2)');
     deepEqual(A1.getCalculatedValue(),1);
     deepEqual(A2.getCalculatedValue(),2);
     deepEqual(A3.getCalculatedValue(),3);
