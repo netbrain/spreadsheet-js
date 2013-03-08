@@ -69,11 +69,8 @@
         }
         return 0
       },
-      setCellData: function(pos,data){
-        var cell = this.spreadsheet.setCellData(pos,data.formula);
-        if(data.metadata != null){
-          cell.setMetadata(data.metadata);
-        }
+      setCellData: function(pos,value){
+        var cell = this.spreadsheet.setCellData(pos,value);
         cell.addValueChangeListener(ValueChangeListener,cell);
         return cell;
       }
@@ -91,7 +88,10 @@
 
     this.setData = function(data){
       for(var pos in data){
-         dataModel.setCellData(pos,data[pos]);
+         var cell = dataModel.setCellData(pos,data[pos].formula);
+         if(data[pos].metadata != null){
+          cell.setMetadata(data[pos].metadata);
+         }
       }
     }
 
