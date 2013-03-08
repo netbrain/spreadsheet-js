@@ -1,7 +1,7 @@
 (function (Spreadsheet) {
   $.extend(true, window, {
     "Spreadsheet": {
-      "Slick": SpreadsheetSlick,
+      "Slick": SpreadsheetSlick
     }
   });
 

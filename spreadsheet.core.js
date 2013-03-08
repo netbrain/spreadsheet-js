@@ -232,7 +232,7 @@
                 if(!alreadyAdded){
                     this.valueListeners.push({
                         handler:handler,
-                        context:context,
+                        context:context
                     })
                 }
             }
