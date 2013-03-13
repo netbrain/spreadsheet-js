@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Spreadsheet example usage with slickgrid and higcharts</title>
+    <link rel="stylesheet" href="../lib/slickgrid/slick.grid.css" type="text/css"/>
+    <link rel="stylesheet" href="../lib/slickgrid/css/smoothness/jquery-ui-1.8.16.custom.css" type="text/css"/>
+    <link rel="stylesheet" href="../lib/slickgrid/examples/slick-default-theme.css" type="text/css"/>
+</head>
+<body>
+	<div style="position:relative">
+		<div style="width:800px; height: 500px">
+			<div id="myGrid" style="width:100%;height:100%;"></div>
+		</div>
+	</div>
+	<script type="text/javascript" src="../lib/slickgrid/lib/firebugx.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/lib/jquery-1.7.min.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/lib/jquery-ui-1.8.16.custom.min.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/slick.core.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.autotooltips.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellrangedecorator.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellrangeselector.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellcopymanager.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/plugins/slick.cellselectionmodel.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/slick.editors.js"></script>
+	<script type="text/javascript" src="../lib/slickgrid/slick.grid.js"></script>
+	<script type="text/javascript" src="../spreadsheet.core.js"></script>
+	<script type="text/javascript" src="../lib/efp/efp.js"></script>
+	<script type="text/javascript" src="../spreadsheet.slick.js"></script>	
+	<script type="text/javascript" src="../lib/highcharts/js/highcharts.src.js"></script>		
+	<script type="text/javascript">
+		var rawData = {
+			A2:{
+				formula:'Q1',
+			},
+			A3:{
+				formula:'Q2'
+			},
+			A4:{
+				formula:'Q3'
+			},
+			A5:{
+				formula:'Q4'
+			},
+			B1:{
+				formula:'2010'
+			},
+			B2:{
+				formula:'12'
+			},
+			B3:{
+				formula:'56'
+			},
+			B4:{
+				formula:'52'
+			},
+			B5:{
+				formula:'30'
+			},
+			C1:{
+				formula:'2011'
+			},
+			C2:{
+				formula:'15'
+			},
+			C3:{
+				formula:'73'
+			},
+			C4:{
+				formula:'61'
+			},
+			C5:{
+				formula:'32'
+			},
+			D1:{
+				formula:'2012'
+			},
+			D2:{
+				formula:'21'
+			},
+			D3:{
+				formula:'86'
+			},
+			D4:{
+				formula:'69'
+			},
+			H20:{
+				formula:'' //cheat to draw cells up to H20
+			}
+		};
+
+		var charts = [{
+			type: 'area',
+			stacking: 'percent',
+			title:"Test %Stacked Area Chart",
+			start:'A7',
+			end:'H20',
+			data:[{
+				label:'D1',
+				value:'D2:D5'
+			},
+			{
+				label:'C1',
+				value:'C2:C5'	
+			},
+			{
+				label:'B1',
+				value:'B2:B5'	
+			}],
+			categories: 'A2:A5'
+		}];
+
+		var spreadsheetSlick = new Spreadsheet.Slick('#myGrid',rawData);
+		var grid = spreadsheetSlick.getGrid();
+		var spreadsheet = spreadsheetSlick.getSpreadsheet();
+		grid.render();
+
+		//render charts
+		for(var x = 0; x < charts.length; x++){
+			var chart = charts[x];
+			var startPos = Spreadsheet.parsePosition(chart.start);
+			var endPos = Spreadsheet.parsePosition(chart.end);
+
+			var startCellNode = grid.getCellNode(startPos.row-1,startPos.getColumnIndex());
+			var endCellNode = grid.getCellNode(endPos.row-1,endPos.getColumnIndex());
+
+			var chartStartPos = {
+				left: $(startCellNode).position().left,
+				top: $(startCellNode).parent().position().top
+			}
+
+			var chartEndPos = {
+				left: $(endCellNode).position().left,
+				top: $(endCellNode).parent().position().top
+			}
+
+			var chartX = chartStartPos.top;
+			var chartY = chartStartPos.left;			
+			var chartWidth = chartEndPos.left-chartStartPos.left;
+			var chartHeight = chartEndPos.top-chartStartPos.top;
+
+			var chartCategories = spreadsheet.getCellRangeValues(chart.categories);
+
+
+			var chartNode = $('<div></div>').css({
+				position: 'absolute',
+				top:chartX,
+				left:chartY,
+				zIndex:100				
+			}).attr('id','chart-'+x).appendTo('.grid-canvas');
+
+			var chartData = {
+				chart: {
+					renderTo: 'chart-'+x,
+					type: chart.type,
+					width: chartWidth,
+					height: chartHeight
+				},
+				title: {
+					text: chart.title
+				},
+				xAxis: {
+					categories: chartCategories,
+				},
+		        plotOptions:{},
+				series: []
+			};
+
+			chartData.plotOptions[chart.type] = {
+				stacking: chart.stacking
+			}
+
+			for(var i = 0; i < chart.data.length; i++){
+				var series = chart.data[i];
+				var seriesData = spreadsheet.getCellRangeValues(series.value);
+
+				//highcharts requires numeric data, spreadsheet does not automatically convert
+				for(var j = 0; j < seriesData.length; j++){
+					seriesData[j] = parseFloat(seriesData[j]);
+				}
+
+				chartData.series.push({
+					name:spreadsheet.getCellValue(series.label),
+					data:seriesData
+				})
+			}
+
+			new Highcharts.Chart(chartData);
+
+		}
+		
+	</script>
+</body>
+</html>

@@ -195,7 +195,7 @@ test( "Get cell range", function(){
     });
     var cells = sheet.getCellRange('A1:B1');
     deepEqual(cells,[
-        [sheet.getCell('A1'),sheet.getCell('B1')]
+        sheet.getCell('A1'),sheet.getCell('B1')
     ]);
 });
 
@@ -205,9 +205,9 @@ test( "Get cell range A1-C3", function(){
     var $fixture = $( "#qunit-fixture" );
     var cells = sheet.getCellRange('A1:C3');
     deepEqual(cells,[
-        [sheet.getCell('A1'),sheet.getCell('B1'),sheet.getCell('C1')],
-        [sheet.getCell('A2'),sheet.getCell('B2'),sheet.getCell('C2')],
-        [sheet.getCell('A3'),sheet.getCell('B3'),sheet.getCell('C3')]
+        sheet.getCell('A1'),sheet.getCell('B1'),sheet.getCell('C1'),
+        sheet.getCell('A2'),sheet.getCell('B2'),sheet.getCell('C2'),
+        sheet.getCell('A3'),sheet.getCell('B3'),sheet.getCell('C3')
     ]);
 });
 
@@ -217,7 +217,7 @@ test( "Get cell range by PositionRange", function(){
     var range = Spreadsheet.parsePosition('A1:B1');
     var cells = sheet.getCellRange(range);
     deepEqual(cells,[
-        [sheet.getCell('A1'),sheet.getCell('B1')]
+        sheet.getCell('A1'),sheet.getCell('B1')
     ]);
 });
 
@@ -228,9 +228,9 @@ test( "Get cell range A1-C3 by PositionRange", function(){
     var range = Spreadsheet.parsePosition('A1:C3');
     var cells = sheet.getCellRange(range);
     deepEqual(cells,[
-        [sheet.getCell('A1'),sheet.getCell('B1'),sheet.getCell('C1')],
-        [sheet.getCell('A2'),sheet.getCell('B2'),sheet.getCell('C2')],
-        [sheet.getCell('A3'),sheet.getCell('B3'),sheet.getCell('C3')]
+        sheet.getCell('A1'),sheet.getCell('B1'),sheet.getCell('C1'),
+        sheet.getCell('A2'),sheet.getCell('B2'),sheet.getCell('C2'),
+        sheet.getCell('A3'),sheet.getCell('B3'),sheet.getCell('C3')
     ]);
 });
 
