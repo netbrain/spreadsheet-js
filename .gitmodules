@@ -4,3 +4,6 @@
 [submodule "lib/slickgrid"]
 	path = lib/slickgrid
 	url = https://github.com/mleibman/SlickGrid
+[submodule "lib/highcharts"]
+	path = lib/highcharts
+	url = https://github.com/highslide-software/highcharts.com.git
