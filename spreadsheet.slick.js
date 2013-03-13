@@ -90,6 +90,10 @@
       return grid;
     };
 
+    this.getSpreadsheet = function(){
+      return dataModel.spreadsheet;
+    };
+
     this.setData(data);
 
     var cNum = dataModel.spreadsheet.getColNum();

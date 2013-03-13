@@ -122,11 +122,11 @@
             var maxc = Math.max(p1col,p2col);
 
             for(var row = minr; row <= maxr; row++){
-                var rowArray = [];
+                //var rowArray = [];
                 for(var col = minc; col <= maxc; col++){
-                    rowArray.push(this.getCellByRowAndCol(row,col));
+                    cellRange.push(this.getCellByRowAndCol(row,col));
                 }
-                cellRange.push(rowArray);
+                //cellRange.push(rowArray);
             }
             return cellRange;
         };
@@ -135,13 +135,17 @@
             var values = [];
             var cells = this.getCellRange(pos1,pos2);
             for (var x = 0 ; x < cells.length; x++){
-                for (var y = 0 ; y < cells[x].length; y++){
-                    if(cells[x][y] !== undefined){
-                        values.push(cells[x][y].value);
+                //for (var y = 0 ; y < cells[x].length; y++){
+                    if(cells[x] !== undefined){
+                        values.push(cells[x].value);
                     }
-                }
+                //}
             }
             return values;
+        };
+
+        this.getCellValue = function(pos){
+            return this.getCell(pos).getCalculatedValue();
         };
 
         this.getCell = function(pos){
@@ -165,6 +169,25 @@
             c--;
             if(r in cells && c in cells[r]){
                 return this.cells.byRowAndCol[r][c];
+            }
+        };
+
+        this.addValueChangeListener = function(rangeOrPos,listener){
+            if(typeof rangeOrPos === "string"){
+                rangeOrPos = Spreadsheet.parsePosition(rangeOrPos);
+            }
+
+            var cells;
+            if(rangeOrPos instanceof PositionRange){
+                cells = this.getCellRange(rangeOrPos);
+            }else if(rangeOrPos instanceof Position){
+                cells = [this.getCell(rangeOrPos)];
+            }else{
+                throw "Illegal argument";
+            }
+
+            for (var i = cells.length - 1; i >= 0; i--) {
+                cells[i].addValueChangeListener(listener);
             }
         };
 
