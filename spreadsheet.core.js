@@ -14,7 +14,7 @@
     Spreadsheet.parsePosition = function(input){
 
         if(typeof input !== "string"){
-            throw "expected string as input"
+            throw "expected string as input";
         }
 
         var matches = input.match(/((.+)!)?\$?([A-Z]+)\$?([0-9]+)(\:\$?([A-Z]+)\$?([0-9]+))?/);
@@ -32,15 +32,13 @@
                 new Position(col2,row2,sheet)
             );
         }
-
-        return
-    }
+    };
 
     Spreadsheet.getColumnNameByIndex = function(i) {
         var output = '';
         if(i > charArray.length-1){
-            output += this.getColumnNameByIndex(Math.floor(i/charArray.length-1))
-            output += charArray[i%charArray.length]
+            output += this.getColumnNameByIndex(Math.floor(i/charArray.length-1));
+            output += charArray[i%charArray.length];
         }else{
             output = charArray[i];
         }
@@ -54,7 +52,7 @@
         for(var x = 0; x < cArray.length; x++){
             var cChar = cArray[x];
             var cIndex = indexArray[cChar];
-            index += (Math.pow(charNum,x)*(cIndex+1))
+            index += (Math.pow(charNum,x)*(cIndex+1));
         }
         return index+1;
     };
@@ -68,7 +66,7 @@
             byRowAndCol:[]
         };
 
-        this.formulaParser = Parser.newInstance(this.cells.byPosition);
+        this.formulaParser = EFP.newInstance(this.cells.byPosition);
 
         this.setData = function(data){
             for (var pos in data){
@@ -144,7 +142,7 @@
                 }
             }
             return values;
-        }
+        };
 
         this.getCell = function(pos){
             if(typeof(pos) === 'string'){
@@ -166,28 +164,30 @@
             r--;
             c--;
             if(r in cells && c in cells[r]){
-                return this.cells.byRowAndCol[r][c];    
+                return this.cells.byRowAndCol[r][c];
             }
         };
 
         this.getRowNum = function(){
             return this.cells.byRowAndCol.length;
-        }
+        };
 
         this.getColNum = function(){
             var max = 0;
             var rows = this.cells.byRowAndCol;
             for (var row = 0; row < rows.length; row++){
-                var rowLen = rows[row] != null ? rows[row].length : 0; 
+                var rowLen = rows[row] ? rows[row].length : 0;
                 if(rowLen > max) max = rowLen;
             }
             return max;
-        }
+        };
 
         this.toString = function(){
-            if(this.name == null) return '';
+            if(!this.name) {
+                return '';
+            }
             return this.name;
-        }
+        };
     }
 
     function Cell(position,value){
@@ -198,11 +198,11 @@
                 if(this.referingCells[x] === cell){
                     alreadyAdded = true;
                     break;
-                }   
+                }
             }
             if(!alreadyAdded){
                 this.referingCells.push(cell);
-            }            
+            }
         };
 
         this.addReferencedCell = function(cell){
@@ -211,14 +211,14 @@
                 if(this.referencedCells[x] === cell){
                     alreadyAdded = true;
                     break;
-                }   
+                }
             }
             if(!alreadyAdded){
                 this.referencedCells.push(cell);
                 cell.addValueChangeListener(this.referenceValueChange,this);
             }
         };
-        
+
         this.addValueChangeListener = function(handler,context){
             if(typeof(handler) === 'function'){
                 var alreadyAdded = false;
@@ -227,23 +227,23 @@
                     if(l.handler === handler){
                         alreadyAdded = true;
                         break;
-                    }   
+                    }
                 }
                 if(!alreadyAdded){
                     this.valueListeners.push({
                         handler:handler,
                         context:context
-                    })
+                    });
                 }
             }
         };
 
-        this.setValue = function(val){         
+        this.setValue = function(val){
             var oldFormula = this.formula;
             this.value = val;
             this.formula = val;
             this.triggerValueChangeEvent(this,oldFormula,this.formula);
-        }
+        };
 
         this.triggerValueChangeEvent = function(cell,from,to) {
             for (var x = 0; x < this.valueListeners.length; x++) {
@@ -254,57 +254,57 @@
                     to: to
                 });
             }
-        }
+        };
 
         this.recalculate = function(){
             if(this.isFormula()){
                 this.value = this.formula;
-                this.calculateValue();           
-            }         
-        }        
+                this.calculateValue();
+            }
+        };
 
         this.referenceValueChange = function(e){
             this.recalculate();
             this.triggerValueChangeEvent(e.cell,e.from,e.to);
-        }
+        };
 
         this.isCalculated = function(){
             if(!this.isFormula()) return true;
             return this.value !== this.formula;
-        }
+        };
 
         this.calculateValue = function(){
             if(!this.isCalculated()){
                 this.value = formulaParser.parse(this.formula,this.position);
                 if(typeof(this.value) === 'object'){
                     this.value = this.value.valueOf();
-                }              
+                }
                 if(formulaParser.hasReferences(this.position)){
                     var refs = formulaParser.getReferences(this.position);
-                    if(refs != null){
+                    if(refs){
                         for(var x = 0; x < refs.length; x++){
                             var referencedCell = this.position.sheet.getCell(refs[x]);
-                            if(referencedCell == null){
+                            if(!referencedCell){
                                 referencedCell = this.position.sheet.setCellData(refs[x],'');
                             }
                             referencedCell.addReferingCell(this);
                             this.addReferencedCell(referencedCell);
 
-                        }            
+                        }
                     }
-                }               
+                }
             }
-        }
+        };
 
         this.getCalculatedValue = function(){
             this.calculateValue();
             return this.value;
-        }
+        };
 
         this.toString = function(){
-            return this.value != null ? ''+this.value : '';
-        }
-        
+            return this.value ? ''+this.value : '';
+        };
+
         //Returns the primitive calculated value of the cell
         //In it's excel format
         this.valueOf = function(){
@@ -313,18 +313,18 @@
             }
             var number = parseFloat(this.value);
             return isNaN(number) ? '"'+this.value+'"' : number;
-        }
+        };
 
         this.isFormula = function(){
             if(typeof(this.formula) === 'string'){
                 return this.formula.length > 1 && this.formula.indexOf('=') === 0;
             }
-            return false
-        }
+            return false;
+        };
 
         this.setMetadata = function(metadata){
             this.metadata = metadata;
-        }
+        };
 
         if(!(position instanceof Position)){
             throw "Illegal argument";
@@ -347,21 +347,21 @@
 
         this.getColumnIndex = function(){
             return Spreadsheet.getColumnIndexByName(this.col);
-        }
+        };
 
         this.isValidPosition = function(){
             return this.col && this.row;
-        }
+        };
 
         this.toString = function(){
             return this.col+this.row;
-        }
+        };
 
         if(sheet) this.sheet = sheet;
         if(col) this.col = col;
         if(row){
             if(typeof(row) !== "number"){
-                row = parseInt(row);
+                row = parseInt(row,10);
             }
             if(isNaN(row)){
                 throw "Expected number as argument";
