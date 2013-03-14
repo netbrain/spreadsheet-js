@@ -54,7 +54,7 @@
             var cIndex = indexArray[cChar];
             index += (Math.pow(charNum,x)*(cIndex+1));
         }
-        return index+1;
+        return index;
     };
 
 
@@ -95,7 +95,7 @@
                 if(cellsRC[pos.row-1] === undefined){
                     cellsRC[pos.row-1] = [];
                 }
-                cellsRC[pos.row-1][pos.getColumnIndex()-1] = cell;
+                cellsRC[pos.row-1][pos.getColumnIndex()] = cell;
             }else{
                 cellsP[pos].setValue(value);
             }
@@ -133,9 +133,7 @@
             var values = [];
             var cells = this.getCellRange(pos1,pos2);
             for (var x = 0 ; x < cells.length; x++){
-                    if(cells[x] !== undefined){
-                        values.push(cells[x].value);
-                    }
+                values.push(cells[x].value);
             }
             return values;
         };
@@ -153,6 +151,10 @@
                 throw "Illegal argument";
             }
 
+            if(!(pos in this.cells.byPosition)){
+                this.setCellData(pos);
+            }
+
             return this.cells.byPosition[pos];
         };
 
@@ -162,10 +164,11 @@
             }
             var cells = this.cells.byRowAndCol;
             r--;
-            c--;
-            if(r in cells && c in cells[r]){
-                return this.cells.byRowAndCol[r][c];
+            if(!(r in cells && c in cells[r])){
+                var pos = Spreadsheet.getColumnNameByIndex(c)+(r+1);
+                this.setCellData(pos);
             }
+            return this.cells.byRowAndCol[r][c];
         };
 
         this.addValueChangeListener = function(rangeOrPos,listener){
@@ -330,6 +333,7 @@
             if(!this.isCalculated()){
                 this.calculateValue();
             }
+            if(!this.value) return;
             var number = parseFloat(this.value);
             return isNaN(number) ? '"'+this.value+'"' : number;
         };

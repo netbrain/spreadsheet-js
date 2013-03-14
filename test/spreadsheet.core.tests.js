@@ -36,7 +36,7 @@ test( "Get column by index A-Z", function() {
     for (var i = 0; i < chars.length; i++) {
         var name = Spreadsheet.getColumnNameByIndex(i);
         var index = Spreadsheet.getColumnIndexByName(name);
-        equal(index,i+1);
+        equal(index,i);
     }
 });
 
@@ -44,7 +44,7 @@ test( "Get column by index AA-AZ", function() {
     for (var i = chars.length; i < chars.length*2; i++) {
         var name = Spreadsheet.getColumnNameByIndex(i);
         var index = Spreadsheet.getColumnIndexByName(name);
-        equal(index,i+1);
+        equal(index,i);
     }
 });
 
@@ -52,7 +52,7 @@ test( "Get column by index BA-BZ", function() {
     for (var i = chars.length*2; i < chars.length*3; i++) {
         var name = Spreadsheet.getColumnNameByIndex(i);
         var index = Spreadsheet.getColumnIndexByName(name);
-        equal(index,i+1);
+        equal(index,i);
     }
 });
 
@@ -60,7 +60,7 @@ test( "Get column by index AAA-AAZ", function() {
     for (var i = chars.length*(chars.length+1); i < chars.length*(chars.length+2); i++) {
         var name = Spreadsheet.getColumnNameByIndex(i);
         var index = Spreadsheet.getColumnIndexByName(name);
-        equal(index,i+1);
+        equal(index,i);
     }
 });
 
@@ -68,7 +68,7 @@ test( "Get column by index BAA-BAZ", function() {
     for (var i = chars.length*(chars.length*2+1); i < chars.length*(chars.length*2+2); i++) {
         var name = Spreadsheet.getColumnNameByIndex(i);
         var index = Spreadsheet.getColumnIndexByName(name);
-        equal(index,i+1);
+        equal(index,i);
     }
 });
 
@@ -376,4 +376,33 @@ test( "Test range reference handling", function(){
     deepEqual(A1.referingCells,[A4]);
     deepEqual(A2.referingCells,[A4]);
     deepEqual(A3.referingCells,[A4]);
+});
+
+test( "Test getCell should not return undefined", function(){
+    var sheet = Spreadsheet.createSheet();
+    var cell = sheet.getCell('A1');
+
+    ok(cell !== undefined);
+
+});
+
+test( "Test getCellByRowAndCol should not return undefined", function(){
+    var sheet = Spreadsheet.createSheet();
+    var p = Spreadsheet.parsePosition('A1');
+    var cell = sheet.getCellByRowAndCol(p.row,p.getColumnIndex());
+
+    ok(cell !== undefined);
+});
+
+test( "Test columnIndex functions should return same value", function(){
+    var sheet = Spreadsheet.createSheet();
+    var index = Spreadsheet.getColumnIndexByName('A');
+    var result = Spreadsheet.getColumnNameByIndex(index);
+    equal(result,'A');
+});
+
+test( "Test cell valueOf", function(){
+    var sheet = Spreadsheet.createSheet();
+    var cell = sheet.getCell('A1');
+    equal(cell.valueOf(),undefined);
 });
