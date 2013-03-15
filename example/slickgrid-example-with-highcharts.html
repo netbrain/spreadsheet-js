@@ -121,8 +121,8 @@
 			var startPos = Spreadsheet.parsePosition(chart.start);
 			var endPos = Spreadsheet.parsePosition(chart.end);
 
-			var startCellNode = grid.getCellNode(startPos.row-1,startPos.getColumnIndex());
-			var endCellNode = grid.getCellNode(endPos.row-1,endPos.getColumnIndex());
+			var startCellNode = grid.getCellNode(startPos.row-1,startPos.getColumnIndex()+1);
+			var endCellNode = grid.getCellNode(endPos.row-1,endPos.getColumnIndex()+1);
 
 			var chartStartPos = {
 				left: $(startCellNode).position().left,
