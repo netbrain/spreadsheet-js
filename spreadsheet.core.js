@@ -333,7 +333,7 @@
             if(!this.isCalculated()){
                 this.calculateValue();
             }
-            if(!this.value) return;
+            if(!this.value) return null;
             var number = parseFloat(this.value);
             return isNaN(number) ? '"'+this.value+'"' : number;
         };

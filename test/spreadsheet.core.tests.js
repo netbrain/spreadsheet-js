@@ -404,5 +404,5 @@ test( "Test columnIndex functions should return same value", function(){
 test( "Test cell valueOf", function(){
     var sheet = Spreadsheet.createSheet();
     var cell = sheet.getCell('A1');
-    equal(cell.valueOf(),undefined);
+    equal(cell.valueOf(),null);
 });

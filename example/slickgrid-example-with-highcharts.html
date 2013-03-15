@@ -172,20 +172,41 @@
 
 			for(var i = 0; i < chart.data.length; i++){
 				var series = chart.data[i];
-				var seriesData = spreadsheet.getCellRangeValues(series.value);
-
+				var seriesData = spreadsheet.getCellRange(series.value);
 				//highcharts requires numeric data, spreadsheet does not automatically convert
 				for(var j = 0; j < seriesData.length; j++){
-					seriesData[j] = parseFloat(seriesData[j]);
+					var cell = seriesData[j];
+					seriesData[j] = {
+						id:cell.position,
+						name: spreadsheet.getCellValue(series.label),
+						y:cell.valueOf()
+					};
 				}
 
 				chartData.series.push({
-					name:spreadsheet.getCellValue(series.label),
 					data:seriesData
 				})
 			}
 
-			new Highcharts.Chart(chartData);
+			new Highcharts.Chart(chartData,function(c){
+				//on load
+				//Add series value change listeners
+				for (var i = 0; i < c.series.length; i++) {
+					var series = c.series[i];
+					for (var j = 0;  j < series.data.length; j++) {
+						var point = series.data[j];
+						//add listener for point value
+						spreadsheet.addValueChangeListener(point.id,function(e){
+							var point = c.get(e.cell.position);
+							try{
+								point.update(e.cell.valueOf());
+							}catch(e){
+								alert('Error occured while updating point!');
+							}
+						});
+					};
+				};
+			});
 
 		}
 		
