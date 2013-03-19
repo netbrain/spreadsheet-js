@@ -129,9 +129,9 @@
             return cellRange;
         };
 
-        this.getCellRangeValues = function(pos1,pos2){
+        this.getCellRangeValues = function(range){
             var values = [];
-            var cells = this.getCellRange(pos1,pos2);
+            var cells = this.getCellRange(range);
             for (var x = 0 ; x < cells.length; x++){
                 values.push(cells[x].value);
             }
