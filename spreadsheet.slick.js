@@ -119,7 +119,7 @@
           try{
             $(cellNode).text(cell.getCalculatedValue());
           }catch(err){
-            $(cellNode).text(''+Parser.Error.NAME);
+            $(cellNode).text(''+EFP.Error.NAME);
           }
         }
       }
