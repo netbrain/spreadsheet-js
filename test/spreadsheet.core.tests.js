@@ -156,6 +156,18 @@ test( "Parse position A1:B2", function(){
     deepEqual(p.to.row, 2);
 });
 
+test( "Parse position A:A", function(){
+    var p = Spreadsheet.parsePosition("A:A");
+    equal(p.from.sheet,null);
+    equal(p.to.sheet, null);
+    deepEqual(p.from.toString(), "A1");
+    deepEqual(p.from.col, "A");
+    deepEqual(p.from.row, 1);
+    deepEqual(p.to.toString(), "A65536");
+    deepEqual(p.to.col, "A");
+    deepEqual(p.to.row, 65536);
+});
+
 
 test( "Set cell data", function() {
     var sheet = Spreadsheet.createSheet();

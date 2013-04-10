@@ -117,9 +117,10 @@
         var cell = dataContext[colDef.field];
         if(cell){
           try{
-            $(cellNode).text(cell.getCalculatedValue());
+            $(cellNode).html(cell.getCalculatedValue());
           }catch(err){
-            $(cellNode).text(''+EFP.Error.NAME);
+            throw err;
+            //$(cellNode).text(''+EFP.Error.NAME);
           }
         }
       }
@@ -171,10 +172,10 @@
         var cell = item[args.column.field];
         if (cell){
           if(cell.isFormula()){
-          defaultValue = cell.formula;
-        }else{
-          defaultValue = cell.value;
-        }
+            defaultValue = cell.formula;
+          }else{
+            defaultValue = cell.value;
+          }
         }
         $input.val(defaultValue);
         $input[0].defaultValue = defaultValue;

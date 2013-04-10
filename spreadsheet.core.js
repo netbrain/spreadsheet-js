@@ -17,16 +17,30 @@
             throw "expected string as input";
         }
 
-        var matches = input.match(/((.+)!)?\$?([A-Z]+)\$?([0-9]+)(\:\$?([A-Z]+)\$?([0-9]+))?/);
+        var matches = input.match(/((.+)!)?\$?([A-Z]+)\$?([0-9]+)?(\:\$?([A-Z]+)\$?([0-9]+)?)?/);
+
+        if(!matches){
+            throw "not a valid position: "+input;
+        }
+
         var sheet = matches[2];
         var col1 = matches[3];
         var row1 = matches[4];
         var col2 = matches[6];
         var row2 = matches[7];
 
-        if(!(row2 && col2)){
+        if(!col2){
             return new Position(col1,row1,sheet);
         }else{
+            //Column reference
+            if(!!col1 && !row1){
+                row1 = 1;
+            }
+
+            if(!!col2 && !row2){
+                row2 = 65536;
+            }
+
             return new PositionRange(
                 new Position(col1,row1,sheet),
                 new Position(col2,row2,sheet)
@@ -377,7 +391,7 @@
         };
 
         this.toString = function(){
-            return this.col+this.row;
+            return this.col+(this.row ? this.row : '');
         };
 
         if(sheet) this.sheet = sheet;
