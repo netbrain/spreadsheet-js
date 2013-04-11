@@ -79,10 +79,11 @@
 
     this.setData = function(data){
       for(var pos in data){
-         var cell = dataModel.setCellData(pos,data[pos].formula);
-         if(data[pos].metadata){
+        var formula = typeof(data[pos]) === "object" ? data[pos].formula : data[pos];
+        var cell = dataModel.setCellData(pos,formula);
+        if(data[pos].metadata){
           cell.setMetadata(data[pos].metadata);
-         }
+        }
       }
     };
 
@@ -119,8 +120,8 @@
           try{
             $(cellNode).html(cell.getCalculatedValue());
           }catch(err){
-            throw err;
-            //$(cellNode).text(''+EFP.Error.NAME);
+            console.log("cell: "+cell.position+'('+cell.formula+') - '+err);
+            $(cellNode).text(''+EFP.Error.NAME);
           }
         }
       }

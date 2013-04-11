@@ -228,49 +228,38 @@
 
     function Cell(position,value){
 
+        this.getId = function(){
+            return this.position.toString();
+        };
+
         this.addReferingCell = function(cell){
-            var alreadyAdded = false;
-            for(var x = 0; x < this.referingCells.length; x++){
-                if(this.referingCells[x] === cell){
-                    alreadyAdded = true;
-                    break;
-                }
-            }
-            if(!alreadyAdded){
-                this.referingCells.push(cell);
+            if (!(cell.position in this.referingCells)) {
+                this.referingCells[cell.position] = cell;
             }
         };
 
         this.addReferencedCell = function(cell){
-            var alreadyAdded = false;
-            for(var x = 0; x < this.referencedCells.length; x++){
-                if(this.referencedCells[x] === cell){
-                    alreadyAdded = true;
-                    break;
-                }
-            }
-            if(!alreadyAdded){
-                this.referencedCells.push(cell);
-                cell.addValueChangeListener(this.referenceValueChange,this);
+            if (!(cell.position in this.referencedCells)) {
+                this.referencedCells[cell.position] = cell;
+                cell.addValueChangeListener(this);
             }
         };
 
-        this.addValueChangeListener = function(handler,context){
-            if(typeof(handler) === 'function'){
-                var alreadyAdded = false;
-                for(var x = 0; x < this.valueListeners.length; x++){
-                    var l = this.valueListeners[x];
-                    if(l.handler === handler){
-                        alreadyAdded = true;
-                        break;
-                    }
+        this.addValueChangeListener = function(o){
+            if(typeof(o) === 'object' && o.cellValueChangeEvent && o.getId){
+                if (!(o.getId() in this.valueListeners)) {
+                    this.valueListeners[o.getId()] = {
+                        handler:o.cellValueChangeEvent,
+                        context:o
+                    };
                 }
-                if(!alreadyAdded){
-                    this.valueListeners.push({
-                        handler:handler,
-                        context:context
-                    });
-                }
+            }else if (typeof(o) === 'function'){
+                this.valueListeners[Date.now()] = {
+                    handler: o,
+                    context: this
+                };
+            }else{
+                throw "listener needs to a simple function or an object that implements 'getId' and 'cellValueChangeEvent'";
             }
         };
 
@@ -278,18 +267,23 @@
             var oldFormula = this.formula;
             this.value = val;
             this.formula = val;
-            this.triggerValueChangeEvent(this,oldFormula,this.formula);
+            this.triggerValueChangeEvent(oldFormula,this.formula);
         };
 
-        this.triggerValueChangeEvent = function(cell,from,to) {
-            for (var x = 0; x < this.valueListeners.length; x++) {
-                var l = this.valueListeners[x];
-                l.handler.call(l.context, {
-                    cell: cell,
-                    from: from,
-                    to: to
-                });
-            }
+        this.triggerValueChangeEvent = function(from,to,cell) {
+            setTimeout(function(){
+                if(!cell){
+                    cell = this;
+                }
+                for(var key in this.valueListeners){
+                    var l = this.valueListeners[key];
+                    l.handler.call(l.context, {
+                        cell: cell,
+                        from: from,
+                        to: to
+                    });
+                }
+            },100);
         };
 
         this.recalculate = function(){
@@ -299,10 +293,13 @@
             }
         };
 
-        this.referenceValueChange = function(e){
-            this.recalculate();
-            this.triggerValueChangeEvent(e.cell,e.from,e.to);
+        this.cellValueChangeEvent = function(e){
+            if(e.cell.getId() in this.referencedCells){
+                this.recalculate();
+                this.triggerValueChangeEvent(e.from,e.to,e.cell);
+            }
         };
+
 
         this.isCalculated = function(){
             if(!this.isFormula()) return true;
@@ -368,9 +365,9 @@
         }
         var formulaParser = position.sheet.formulaParser;
         this.position = position;
-        this.valueListeners = [];
-        this.referencedCells = [];
-        this.referingCells = [];
+        this.valueListeners = {};
+        this.referencedCells = {};
+        this.referingCells = {};
 
         this.setValue(value);
 

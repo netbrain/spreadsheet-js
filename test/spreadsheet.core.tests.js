@@ -370,10 +370,10 @@ test( "Test reference handling", function(){
     A1.calculateValue();
     A2.calculateValue();
 
-    deepEqual(A1.referencedCells,[]);
-    deepEqual(A2.referencedCells,[A1]);
-    deepEqual(A2.referingCells,[]);
-    deepEqual(A1.referingCells,[A2]);
+    deepEqual(A1.referencedCells,{});
+    deepEqual(A2.referencedCells,{"A1":A1});
+    deepEqual(A2.referingCells,{});
+    deepEqual(A1.referingCells,{"A2":A2});
 });
 
 test( "Test range reference handling", function(){
@@ -384,10 +384,20 @@ test( "Test range reference handling", function(){
     var A4 = sheet.setCellData('A4','=SUM(A1:A3)');
     A4.calculateValue();
 
-    deepEqual(A4.referencedCells.sort(),[A1,A2,A3].sort());
-    deepEqual(A1.referingCells,[A4]);
-    deepEqual(A2.referingCells,[A4]);
-    deepEqual(A3.referingCells,[A4]);
+    deepEqual(A4.referencedCells,{
+        "A1":A1,
+        "A2":A2,
+        "A3":A3
+    });
+    deepEqual(A1.referingCells,{
+        "A4":A4
+    });
+    deepEqual(A2.referingCells,{
+        "A4":A4
+    });
+    deepEqual(A3.referingCells,{
+        "A4":A4
+    });
 });
 
 test( "Test getCell should not return undefined", function(){
