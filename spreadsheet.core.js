@@ -86,6 +86,7 @@
             for (var pos in data){
                 this.setCellData(pos,data[pos]);
             }
+            this.formulaParser.setData(this.cells.byPosition);
         };
 
         this.setCellData = function(pos,value){
@@ -271,19 +272,17 @@
         };
 
         this.triggerValueChangeEvent = function(from,to,cell) {
-            setTimeout(function(){
-                if(!cell){
-                    cell = this;
-                }
-                for(var key in this.valueListeners){
-                    var l = this.valueListeners[key];
-                    l.handler.call(l.context, {
-                        cell: cell,
-                        from: from,
-                        to: to
-                    });
-                }
-            },100);
+            if(!cell){
+                cell = this;
+            }
+            for(var key in this.valueListeners){
+                var l = this.valueListeners[key];
+                l.handler.call(l.context, {
+                    cell: cell,
+                    from: from,
+                    to: to
+                });
+            }
         };
 
         this.recalculate = function(){
@@ -346,7 +345,7 @@
             }
             if(!this.value) return null;
             var number = parseFloat(this.value);
-            return isNaN(number) ? '"'+this.value+'"' : number;
+            return !isNaN(parseFloat(this.value)) && isFinite(this.value) ? number : '"'+this.value+'"';
         };
 
         this.isFormula = function(){
