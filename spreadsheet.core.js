@@ -334,7 +334,7 @@
         };
 
         this.toString = function(){
-            return this.value ? ''+this.value : '';
+            return this.value != null ? ''+this.value : '';
         };
 
         //Returns the primitive calculated value of the cell
@@ -343,7 +343,7 @@
             if(!this.isCalculated()){
                 this.calculateValue();
             }
-            if(!this.value) return null;
+            if(this.value == null) return null;
             var number = parseFloat(this.value);
             return !isNaN(parseFloat(this.value)) && isFinite(this.value) ? number : '"'+this.value+'"';
         };
