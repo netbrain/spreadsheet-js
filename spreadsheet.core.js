@@ -74,19 +74,11 @@
 
     //Private Methods
     function Sheet(name) {
-        this.name = name;
-        this.cells = {
-            byPosition:{},
-            byRowAndCol:[]
-        };
-
-        this.formulaParser = EFP.newInstance(this.cells.byPosition);
 
         this.setData = function(data){
             for (var pos in data){
                 this.setCellData(pos,data[pos]);
             }
-            this.formulaParser.setData(this.cells.byPosition);
         };
 
         this.setCellData = function(pos,value){
@@ -114,7 +106,6 @@
             }else{
                 cellsP[pos].setValue(value);
             }
-
             return cellsP[pos];
         };
 
@@ -225,6 +216,14 @@
             }
             return this.name;
         };
+
+        this.name = name;
+        this.cells = {
+            byPosition:{},
+            byRowAndCol:[]
+        };
+        this.formulaParser = EFP.newInstance(this);
+
     }
 
     function Cell(position,value){
