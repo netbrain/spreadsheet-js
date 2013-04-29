@@ -139,7 +139,7 @@
             var values = [];
             var cells = this.getCellRange(range);
             for (var x = 0 ; x < cells.length; x++){
-                values.push(cells[x].value);
+                values.push(cells[x].getCalculatedValue());
             }
             return values;
         };

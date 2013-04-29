@@ -41,12 +41,12 @@
           for(var col = 0; col < row.length; col++){
             var cell = row[col];
             if(cell){
-              var itemMeta = {};
+              var itemMeta = cell.metadata ? cell.metadata : {} ;
+              if(itemMeta.validation){
+                itemMeta.editor = ValidationEditor;
+              }
               meta.columns[cell.position.col] = itemMeta;
               itemMeta.formatter = CellFormatter;
-              if(cell.metadata && cell.metadata.colspan){
-                itemMeta.colspan = cell.metadata.colspan;
-              }
             }
           }
         }
@@ -79,10 +79,12 @@
 
     this.setData = function(data){
       for(var pos in data){
-        var formula = typeof(data[pos]) === "object" ? data[pos].formula : data[pos];
+        var inData = data[pos];
+        var formula = typeof(data[pos]) === "object" ? inData.formula : inData;
         var cell = dataModel.setCellData(pos,formula);
-        if(data[pos].metadata){
-          cell.setMetadata(data[pos].metadata);
+
+        if(inData.metadata){
+          cell.setMetadata(inData.metadata);
         }
       }
     };
@@ -100,6 +102,7 @@
     var cNum = dataModel.spreadsheet.getColNum();
     for(var c = 0; c < cNum; c++){
       var name = Spreadsheet.getColumnNameByIndex(c);
+
       columns.push({
         id:name,
         field:c,
@@ -218,6 +221,54 @@
 
       this.init();
     }
+
+  function ValidationEditor(args) {
+    var $select;
+    var defaultValue;
+    var scope = this;
+
+    this.init = function () {
+      //TODO fetch options from list
+      $select = $("<select tabIndex='0'><option>Yes</option><option>No</option></select>");
+      $select.appendTo(args.container);
+      $select.focus();
+    };
+
+    this.destroy = function () {
+      $select.remove();
+    };
+
+    this.focus = function () {
+      $select.focus();
+    };
+
+    this.loadValue = function (item) {
+      $select.val((defaultValue = item[args.column.field]));
+      $select.select();
+    };
+
+    this.serializeValue = function () {
+      return ($select.val());
+    };
+
+    this.applyValue = function (item, state) {
+        var cell = item[args.column.field];
+        cell.setValue(state);
+    };
+
+    this.isValueChanged = function () {
+      return ($select.val() != defaultValue);
+    };
+
+    this.validate = function () {
+      return {
+        valid: true,
+        msg: null
+      };
+    };
+
+    this.init();
+  }
 
     function ValueChangeListener(e){
       grid.invalidateRow(this.position.row-1);
