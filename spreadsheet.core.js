@@ -270,16 +270,14 @@
             this.triggerValueChangeEvent(oldFormula,this.formula);
         };
 
-        this.triggerValueChangeEvent = function(from,to,cell) {
-            if(!cell){
-                cell = this;
-            }
+        this.triggerValueChangeEvent = function(from,to,event) {
             for(var key in this.valueListeners){
                 var l = this.valueListeners[key];
                 l.handler.call(l.context, {
-                    cell: cell,
+                    cell: this,
                     from: from,
-                    to: to
+                    to: to,
+                    event: event
                 });
             }
         };
@@ -293,8 +291,10 @@
 
         this.cellValueChangeEvent = function(e){
             if(e.cell.getId() in this.referencedCells){
+                var from = this.value;
                 this.recalculate();
-                this.triggerValueChangeEvent(e.from,e.to,e.cell);
+                var to = this.value;
+                this.triggerValueChangeEvent(from,to,e);
             }
         };
 
