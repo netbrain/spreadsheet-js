@@ -5,6 +5,7 @@
 
     //Public Property
     //this.public = "public";
+    this.DataValidationException = DataValidationException;
 
     //Public Methods
     Spreadsheet.createSheet = function(name){
@@ -265,8 +266,21 @@
 
         this.setValue = function(val){
             var oldFormula = this.formula;
+            var oldValue = this.value;
             this.value = val;
             this.formula = val;
+
+            if(this.hasDataValidation()){
+               try{
+                    this.dataValidation.validate(this);
+                }catch(e){
+                    if(e instanceof DataValidationException){
+                        this.value = oldValue;
+                        this.formula = oldFormula;
+                    }
+                    throw e;
+                }
+            }
             this.triggerValueChangeEvent(oldFormula,this.formula);
         };
 
@@ -358,6 +372,14 @@
             this.metadata = metadata;
         };
 
+        this.setDataValidation = function(type,operator,args,options){
+            this.dataValidation = new DataValidation(type,operator,args,options);
+        };
+
+        this.hasDataValidation = function(){
+            return this.dataValidation !== undefined && this.dataValidation !== null;
+        };
+
         if(!(position instanceof Position)){
             throw "Illegal argument";
         }
@@ -369,6 +391,108 @@
 
         this.setValue(value);
 
+    }
+
+    function DataValidation(type,operator,args,options){
+
+        var fn = {
+            between: function(value,start,end){
+                return value >= start && value <= end;
+            },
+            notBetween:function(value,start,end){
+                return !fn.between(value,start,end);
+            },
+            equal:function(value,formula){
+                return value === formula;
+            },
+            notEqual:function(value,formula){
+                return !fn.equal(value,formula);
+            },
+            greaterThan:function(value,formula){
+                return value > formula;
+            },
+            lessThan:function(value,formula){
+                return value < formula;
+            },
+            greaterThanOrEqual:function(value,formula){
+                return value >= formula;
+            },
+            lessThanOrEqual:function(value,formula){
+                return value <= formula;
+            }
+        };
+
+        var defaultOptions = {
+            allowBlank: true,
+            showDropDown:true,
+            showErrorMessage:true,
+            showInputMessage:true
+        };
+
+        this.validate = function(cell){
+            var valid;
+            switch(type){
+                case 'whole':
+                case 'decimal':
+                case 'date':
+                case 'time':
+                    if(!(operator in fn)){
+                        throw "unkown operator: "+operator;
+                    }
+                    valid = fn[operator](cell.getCalculatedValue(),args[0],args[1]);
+                    break;
+                case 'list':
+                    var list = cell.position.sheet.getCellRangeValues(args[0]);
+                    var value = cell.getCalculatedValue();
+                    for(var x = 0; x < list.length; x++){
+                        if (list[x] === value){
+                            valid = true;
+                            break;
+                        }
+                    }
+                    break;
+                case 'textLength':
+                    if(!(operator in fn)){
+                        throw "unkown operator: "+operator;
+                    }
+                    valid = fn[operator]((''+cell.getCalculatedValue()).length,args[0],args[1]);
+                    break;
+                case 'custom':
+                    valid = cell.position.sheet.formulaParser.parse(args[0]).toBool();
+                    break;
+                default:
+                    throw "unknown type: "+type;
+            }
+
+            if(!valid){
+                throw new DataValidationException(options.error, options.errorTitle, options.errorStyle);
+            }
+        };
+
+        if(!(args instanceof Array)){
+            throw "Expected array as input argument.";
+        }
+
+        if(options == null){
+            options = {};
+        }
+
+        for (var key in defaultOptions){
+            if(!(key in options)){
+                options[key] = defaultOptions[key];
+            }
+        }
+        this.options = options;
+    }
+
+    function DataValidationException(error,title,type){
+        this.error = error;
+        this.title = title;
+        this.type = type; //stop, warning, information
+
+        this.toString = function(){
+            return this.error !== undefined ? this.error : 'The value entered is not valid.';
+        };
     }
 
     function Position(col,row,sheet){
