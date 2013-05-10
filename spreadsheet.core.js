@@ -431,37 +431,42 @@
 
         this.validate = function(cell){
             var valid;
-            switch(type){
-                case 'whole':
-                case 'decimal':
-                case 'date':
-                case 'time':
-                    if(!(operator in fn)){
-                        throw "unkown operator: "+operator;
-                    }
-                    valid = fn[operator](cell.getCalculatedValue(),args[0],args[1]);
-                    break;
-                case 'list':
-                    var list = cell.position.sheet.getCellRangeValues(args[0]);
-                    var value = cell.getCalculatedValue();
-                    for(var x = 0; x < list.length; x++){
-                        if (list[x] === value){
-                            valid = true;
-                            break;
+            var value = cell.getCalculatedValue();
+
+            if(this.options.allowBlank === true && value === ''){
+                valid = true;
+            }else{
+                switch(type){
+                    case 'whole':
+                    case 'decimal':
+                    case 'date':
+                    case 'time':
+                        if(!(operator in fn)){
+                            throw "unkown operator: "+operator;
                         }
-                    }
-                    break;
-                case 'textLength':
-                    if(!(operator in fn)){
-                        throw "unkown operator: "+operator;
-                    }
-                    valid = fn[operator]((''+cell.getCalculatedValue()).length,args[0],args[1]);
-                    break;
-                case 'custom':
-                    valid = cell.position.sheet.formulaParser.parse(args[0]).toBool();
-                    break;
-                default:
-                    throw "unknown type: "+type;
+                        valid = fn[operator](value,args[0],args[1]);
+                        break;
+                    case 'list':
+                        var list = cell.position.sheet.getCellRangeValues(args[0]);
+                        for(var x = 0; x < list.length; x++){
+                            if (list[x] === value){
+                                valid = true;
+                                break;
+                            }
+                        }
+                        break;
+                    case 'textLength':
+                        if(!(operator in fn)){
+                            throw "unkown operator: "+operator;
+                        }
+                        valid = fn[operator]((''+value).length,args[0],args[1]);
+                        break;
+                    case 'custom':
+                        valid = cell.position.sheet.formulaParser.parse(args[0]).toBool();
+                        break;
+                    default:
+                        throw "unknown type: "+type;
+                }
             }
 
             if(!valid){

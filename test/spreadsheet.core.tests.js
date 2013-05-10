@@ -708,3 +708,11 @@ test( "Test cell validate with whole number when expecting decimal", function(){
     cell.setValue(1);
     equal(1.0,cell.getCalculatedValue());
 });
+
+test( "Test cell validate with allowBlank option", function(){
+    var sheet = Spreadsheet.createSheet();
+    var cell = sheet.getCell('A1');
+    cell.setDataValidation('whole','equal',[1],{allowBlank: true});
+    cell.setValue('');
+    equal('',cell.getCalculatedValue());
+});
