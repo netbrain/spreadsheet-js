@@ -397,7 +397,7 @@ test( "Value change listener test number", function(){
         deepEqual(this, cell);
         deepEqual(event.cell,cell);
         deepEqual(event.from, 'test');
-        deepEqual(event.to, '1024');
+        deepEqual(event.to, 1024);
     },cell);
     cell.setValue('1024');
     equal(valueChanged,true);
@@ -439,6 +439,19 @@ test( "Test cell validate with whole number (equal)", function(){
     var sheet = Spreadsheet.createSheet();
     var cell = sheet.getCell('A1');
     cell.setDataValidation('whole','equal',[1]);
+    cell.setValue(1);
+    equal(1,cell.getCalculatedValue());
+    throws(function(){
+        cell.setValue(2);
+    },Spreadsheet.DataValidationException,"Expected data validation error");
+    equal(1,cell.getCalculatedValue());
+});
+
+test( "Test cell validate with whole number (equal w/cell reference)", function(){
+    var sheet = Spreadsheet.createSheet();
+    sheet.setCellData('A2',1);
+    var cell = sheet.getCell('A1');
+    cell.setDataValidation('whole','equal',['A2']);
     cell.setValue(1);
     equal(1,cell.getCalculatedValue());
     throws(function(){

@@ -3,9 +3,9 @@
     var charArray = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
     var indexArray = {A:0,B:1,C:2,D:3,E:4,F:5,G:6,H:7,I:8,J:9,K:10,L:11,M:12,N:13,O:14,P:15,Q:16,R:17,S:18,T:19,U:20,V:21,W:22,X:23,Y:24,Z:25};
 
-    //Public Property
-    //this.public = "public";
-    this.DataValidationException = DataValidationException;
+
+    //Public properties
+    Spreadsheet.DataValidationException = DataValidationException;
 
     //Public Methods
     Spreadsheet.createSheet = function(name){
@@ -264,13 +264,20 @@
             }
         };
 
-        this.setValue = function(val){
+        this.setValue = function(val,force){
             var oldFormula = this.formula;
             var oldValue = this.value;
+
+            var n = parseFloat(val);
+            if (!isNaN(n) && isFinite(val)){
+                //convert to number if it actually is a number
+                val = n;
+            }
+
             this.value = val;
             this.formula = val;
 
-            if(this.hasDataValidation()){
+            if(force !== true && this.hasDataValidation()){
                try{
                     this.dataValidation.validate(this);
                 }catch(e){
@@ -357,8 +364,7 @@
                 this.calculateValue();
             }
             if(this.value == null) return null;
-            var number = parseFloat(this.value);
-            return !isNaN(parseFloat(this.value)) && isFinite(this.value) ? number : '"'+this.value+'"';
+            return typeof this.value === 'number' ? this.value : '"'+this.value+'"';
         };
 
         this.isFormula = function(){
@@ -426,11 +432,27 @@
             allowBlank: true,
             showDropDown:true,
             showErrorMessage:true,
-            showInputMessage:true
+            showInputMessage:true,
+            promptTitle:null,
+            promptText:null,
+            errorText:null,
+            errorType:null,
+            errorTitle:null
+        };
+
+        this.showInputMessage = function(){
+            return this.options.showInputMessage &&
+            this.options.promptText != null &&
+            this.options.promptText !== '';
+        };
+
+        this.showErrorMessage = function(){
+            return this.options.showErrorMessage;
         };
 
         this.validate = function(cell){
             var valid;
+            var parser = cell.position.sheet.formulaParser;
             var value = cell.getCalculatedValue();
 
             if(this.options.allowBlank === true && value === ''){
@@ -444,6 +466,16 @@
                         if(!(operator in fn)){
                             throw "unkown operator: "+operator;
                         }
+
+                        for(var x = 0; x < 2; x++){
+                            if(args[x] != null){
+                                args[x] = parser.parse(args[x].toString());
+                                if(args[x] != null && typeof(args[x]) === 'object' ){
+                                    args[x] = args[x].valueOf();
+                                }
+                            }
+                        }
+
                         valid = fn[operator](value,args[0],args[1]);
                         break;
                     case 'list':
@@ -462,15 +494,15 @@
                         valid = fn[operator]((''+value).length,args[0],args[1]);
                         break;
                     case 'custom':
-                        valid = cell.position.sheet.formulaParser.parse(args[0]).toBool();
+                        valid = parser.parse(args[0]).toBool();
                         break;
                     default:
                         throw "unknown type: "+type;
                 }
             }
 
-            if(!valid){
-                throw new DataValidationException(options.error, options.errorTitle, options.errorStyle);
+            if(!valid && this.showErrorMessage()){
+                throw new DataValidationException(options.errorText, options.errorTitle, options.errorType);
             }
         };
 
@@ -482,21 +514,44 @@
             options = {};
         }
 
+        this.options = {};
         for (var key in defaultOptions){
             if(!(key in options)){
-                options[key] = defaultOptions[key];
+                this.options[key] = defaultOptions[key];
+            }else{
+                this.options[key] = options[key];
             }
         }
-        this.options = options;
     }
 
     function DataValidationException(error,title,type){
-        this.error = error;
-        this.title = title;
+
+
+        var defaults = {
+            stop: {
+                error: 'The value you entered is not valid.',
+                title: 'Stop'
+            },
+            warning: {
+                error: 'The value you entered is not valid. Continue anyway?',
+                title: 'Warning'
+            },
+            information:{
+                error: 'The value you entered is not valid.',
+                title: 'Information'
+            }
+        };
+
+        if(type !== 'stop' && type !== 'warning' && type !== 'information'){
+            type = 'stop';
+        }
+
+        this.error = error != null && error !== '' ? error : defaults[type].error;
+        this.title = title != null && title !== '' ? title : defaults[type].title;
         this.type = type; //stop, warning, information
 
         this.toString = function(){
-            return this.error !== undefined ? this.error : 'The value entered is not valid.';
+            return this.error;
         };
     }
 
