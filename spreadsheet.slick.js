@@ -42,9 +42,6 @@
 						var cell = row[col];
 						if(cell){
 							var itemMeta = cell.metadata ? cell.metadata : {} ;
-							if(itemMeta.validation){
-								itemMeta.editor = ValidationEditor;
-							}
 							meta.columns[cell.position.col] = itemMeta;
 							itemMeta.formatter = CellFormatter;
 						}
@@ -178,6 +175,7 @@
 		var $input;
 		var defaultValue;
 		var scope = this;
+		var cell = args.item[args.column.field];
 
 		this.init = function () {
 			$input = $("<input type=text class='editor-formula' />")
@@ -189,6 +187,15 @@
 			})
 			.focus()
 			.select();
+
+			if(cell.hasDataValidation() && cell.dataValidation.type === 'list' && cell.dataValidation.options.showDropDown){
+				var values = cell.dataValidation.getListItems(cell);
+				$input.autocomplete({
+					source: values,
+					minLength: 0
+				}).autocomplete("search","");
+			}
+
 		};
 
 		this.destroy = function () {
@@ -209,7 +216,6 @@
 
 		this.loadValue = function (item) {
 			defaultValue = "";
-			var cell = item[args.column.field];
 			if (cell){
 				if(cell.isFormula()){
 					defaultValue = cell.formula;
@@ -306,54 +312,6 @@
 				}
 			}
 
-			return {
-				valid: true,
-				msg: null
-			};
-		};
-
-		this.init();
-	}
-
-	function ValidationEditor(args) {
-		var $select;
-		var defaultValue;
-		var scope = this;
-
-		this.init = function () {
-			//TODO fetch options from list
-			$select = $("<select tabIndex='0'><option>Yes</option><option>No</option></select>");
-			$select.appendTo(args.container);
-			$select.focus();
-		};
-
-		this.destroy = function () {
-			$select.remove();
-		};
-
-		this.focus = function () {
-			$select.focus();
-		};
-
-		this.loadValue = function (item) {
-			$select.val((defaultValue = item[args.column.field]));
-			$select.select();
-		};
-
-		this.serializeValue = function () {
-			return ($select.val());
-		};
-
-		this.applyValue = function (item, state) {
-			var cell = item[args.column.field];
-			cell.setValue(state);
-		};
-
-		this.isValueChanged = function () {
-			return ($select.val() != defaultValue);
-		};
-
-		this.validate = function () {
 			return {
 				valid: true,
 				msg: null

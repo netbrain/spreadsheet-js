@@ -450,6 +450,12 @@
             return this.options.showErrorMessage;
         };
 
+        this.getListItems = function(cell){
+            if(this.type === 'list'){
+                return cell.position.sheet.getCellRangeValues(args[0]);
+            }
+        }
+
         this.validate = function(cell){
             var valid;
             var parser = cell.position.sheet.formulaParser;
@@ -479,7 +485,7 @@
                         valid = fn[operator](value,args[0],args[1]);
                         break;
                     case 'list':
-                        var list = cell.position.sheet.getCellRangeValues(args[0]);
+                        var list = this.getListItems(cell);
                         for(var x = 0; x < list.length; x++){
                             if (list[x] === value){
                                 valid = true;
@@ -522,6 +528,9 @@
                 this.options[key] = options[key];
             }
         }
+
+        this.type = type;
+        this.operator = operator;
     }
 
     function DataValidationException(error,title,type){
