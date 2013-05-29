@@ -479,8 +479,13 @@
         };
 
         this.getListItems = function(cell){
-            if(this.type === 'list'){
-                return cell.position.sheet.getCellRangeValues(args[0]);
+            var list = args[0];
+            if(list.indexOf(':') !== -1){
+                return cell.position.sheet.getCellRangeValues(list);
+            }else if(list.indexOf(',') !== -1){
+                return list.split(',');
+            }else{
+                throw "unknown format for list argument";
             }
         }
 

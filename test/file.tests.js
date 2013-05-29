@@ -150,9 +150,26 @@ QUnit.begin = function(){
 								}
 							}else{
 
-								if(expected && expected.indexOf('%') === expected.length-1){
-									expected = expected.substring(0,expected.length-1);
-									expected = ''+parseFloat(expected)/100;
+								if(expected){
+									if(expected.indexOf('%') === expected.length-1){
+										expected = expected.substring(0,expected.length-1);
+										expected = ''+parseFloat(expected)/100;
+									}
+
+									var parts = expected.split(',');
+									var isNumber = true;
+									//formatted number match
+									for(var x = 0; x < parts.length; x++){
+										if(isNaN(parseFloat(parts[x]))){
+											isNumber = false;
+											break;
+										}
+									}
+
+									if(isNumber){
+										expected = parts.join('');
+									}
+
 								}
 
 								if (cellValue != null && !isNaN(parseFloat(expected)) && !isNaN(parseFloat(cellValue))){

@@ -188,7 +188,11 @@
 			.focus()
 			.select();
 
-			if(cell.hasDataValidation() && cell.dataValidation.type === 'list' && cell.dataValidation.options.showDropDown){
+			if(cell &&
+				cell.hasDataValidation() &&
+				cell.dataValidation.type === 'list' &&
+				cell.dataValidation.options.showDropDown){
+
 				var values = cell.dataValidation.getListItems(cell);
 				$input.autocomplete({
 					source: values,
