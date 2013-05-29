@@ -12,10 +12,14 @@
         return new Sheet(name);
     };
 
-    Spreadsheet.parsePosition = function(input){
+    Spreadsheet.parsePosition = function(input,S){
 
         if(typeof input !== "string"){
             throw "expected string as input";
+        }
+
+        if(!(typeof(S) === "undefined" || S instanceof Sheet)){
+            throw "expected second argument to be of type Sheet";
         }
 
         var matches = input.match(/((.+)!)?\$?([A-Z]+)\$?([0-9]+)?(\:\$?([A-Z]+)\$?([0-9]+)?)?/);
@@ -39,7 +43,11 @@
             }
 
             if(!!col2 && !row2){
-                row2 = 65536;
+                if(S){
+                    row2 = S.getRowNum();
+                }else{
+                    row2 = 65536;
+                }
             }
 
             return new PositionRange(
@@ -112,7 +120,7 @@
 
         this.getCellRange = function (range){
             if(typeof range === "string"){
-                range = Spreadsheet.parsePosition(range);
+                range = Spreadsheet.parsePosition(range,this);
             }
             if(!(range instanceof PositionRange)){
                 throw "Illegal argument";
@@ -180,7 +188,7 @@
 
         this.addValueChangeListener = function(rangeOrPos,listener){
             if(typeof rangeOrPos === "string"){
-                rangeOrPos = Spreadsheet.parsePosition(rangeOrPos);
+                rangeOrPos = Spreadsheet.parsePosition(rangeOrPos,this);
             }
 
             var cells;
@@ -209,6 +217,10 @@
                 if(rowLen > max) max = rowLen;
             }
             return max;
+        };
+
+        this.parsePosition = function(pos){
+            return Spreadsheet.parsePosition(pos,this);
         };
 
         this.toString = function(){
@@ -329,7 +341,20 @@
             if(!this.isCalculated()){
                 this.value = formulaParser.parse(this.formula,this.position);
                 if(typeof(this.value) === 'object'){
+                    
+                    if(this.value instanceof EFP.Ref){
+                        if(EFP.fn.isBlank(this.value)){
+                            //todo should probably add value formatting
+                            //instead of hardcoded values,
+                            //so that the value "blank" is interpreted
+                            //as zero when the cell is set with a number
+                            //format. and when formatted as a string,
+                            //it should yield a blank cell.
+                            this.value = 0;
+                        }
+                    }
                     this.value = this.value.valueOf();
+                    
                 }
                 if(formulaParser.hasReferences(this.position)){
                     var refs = formulaParser.getReferences(this.position);
@@ -350,6 +375,9 @@
 
         this.getCalculatedValue = function(){
             this.calculateValue();
+            if(this.value == null){
+                return '';
+            }
             return this.value;
         };
 

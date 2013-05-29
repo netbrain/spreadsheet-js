@@ -13,17 +13,46 @@ Configure up the filetests.json and export csv files under the folder csv in ord
 excel documents.
 
 */
+
 var formulas = {};
 var values = {};
+var sheet;
 var csvConfig = {
-		'fSep': ',',
-		'trim': true
+	'fSep': ',',
+	'trim': true
 };
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
 
 function log(str){
 	if(console && console.log){
 		console.log(str);
 	}
+}
+
+function debugReferences(refs,data,indent){
+	indent = typeof(indent) === 'number' ? indent : 0;
+	var indentText = '';
+	for(var x = 0; x < indent; x++){
+		indentText = indentText.replace(/./g,' ');
+		indentText += '^--';
+	}
+
+	for (var p in refs){
+		cell = refs[p];
+		cellValue = cell.getCalculatedValue();
+		expected = data[p];
+		if(cellValue+"" !== expected+""){
+			log(indentText+p+" : expected: "+expected+"  but got "+cellValue+' ['+cell.formula+']');
+			debugReferences(cell.referencedCells,data,indent+1);
+		}
+	}
+
 }
 
 function convertFromRowColArrayToSpreadsheetData(data){
@@ -36,9 +65,10 @@ function convertFromRowColArrayToSpreadsheetData(data){
 		while(cols.length > 0){
 			col++;
 			var v = cols.shift();
-			if(v.length !== 0){
-				result[Spreadsheet.getColumnNameByIndex(col)+row] = v;
-			}
+			var key = Spreadsheet.getColumnNameByIndex(col-1)+row;
+			//if(v.length !== 0){
+				result[key] = v;
+			//}
 		}
 	}
 	return result;
@@ -77,11 +107,32 @@ QUnit.begin = function(){
 
 			var formula = convertFromRowColArrayToSpreadsheetData(csvFormulas);
 			var value = convertFromRowColArrayToSpreadsheetData(csvValues);
-			var sheet = Spreadsheet.createSheet();
+			sheet = Spreadsheet.createSheet();
 			sheet.setData(formula);
 
-			for(var pos in formula){
-				if(typeof(formula[pos]) === "string" && formula[pos].indexOf('=') === 0){
+
+			var testList = [];
+			var debug = false;
+			var pos = getParameterByName('pos');
+			if(pos.length > 0){
+				debug = true;
+				if(pos.indexOf(':') !== -1){
+					var range = sheet.getCellRange(pos);
+					for(var x = 0; x < range.length; x++){
+						testList.push(range[x].position.toString());
+					}
+				}else{
+					testList.push(pos);
+				}
+			}else{
+				for(pos in formula){
+					testList.push(pos);
+				}				
+			}
+
+			while(testList.length > 0){
+				pos = testList.shift();
+				if(typeof(formula[pos]) === "string" && (debug || formula[pos].indexOf('=') === 0)){
 					module(key);
 					test(pos+' ( '+formula[pos]+' )', (function(pos,formula,value,sheet){
 						return function(){
@@ -92,7 +143,10 @@ QUnit.begin = function(){
 								if(cellValue == null){
 									ok(true);
 								}else{
-									equal(expected,cellValue.toFixed(2));
+									if(typeof(cellValue) === "number"){
+										cellValue = cellValue.toFixed(2);
+									}
+									equal(expected,cellValue, expected +' === '+cellValue);
 								}
 							}else{
 
@@ -101,31 +155,25 @@ QUnit.begin = function(){
 									expected = ''+parseFloat(expected)/100;
 								}
 
-								if (cellValue != null && !isNaN(expected) && !isNaN(cellValue)){
+								if (cellValue != null && !isNaN(parseFloat(expected)) && !isNaN(parseFloat(cellValue))){
 									var numDecimals = expected.indexOf('.') !== -1 ? expected.split('.')[1].length : 0;
 									cellValue = parseFloat(cellValue).toFixed(numDecimals);
 								}
 
 								equal(cellValue,expected == null ? "" : expected,cellValue+' === '+expected);
 							}
+
 							//Log cell references, usefull for debugging
-							/*for (var p in cell.referencedCells){
-								cell = sheet.getCell(p);
-								cellValue = cell.getCalculatedValue();
-								expected = value[p];
-								if(cellValue+"" !== expected+""){
-									log(p+" : "+cellValue+"  !== "+expected);	
-								}
-							}*/
+							if(debug){
+								debugReferences(cell.referencedCells,value);
+							}
 						};
 					}(pos,formula,value,sheet)));
-				}
+				}						
 			}
 
 		}catch(e){
 			log("Error when getting/parsing ("+valueFile+" or "+formulaFile+") "+e);
 		}
-
-
 	}
 };
